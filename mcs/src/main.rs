@@ -13,8 +13,8 @@ fn main() ->  Result<()> {
     println!("Spooling Server...");
 
     {
-        let host: String = "127.0.0.1".to_string();
-        let port: u16 = 5000;
+        let host: String = "localhost".to_string();
+        let port: u16 = 25565;
         let server = server::Server::new(host, port);
     }
 

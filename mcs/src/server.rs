@@ -24,4 +24,11 @@ impl Server {
         }
     } 
 
+    pub fn run(self) {
+    
+        
+
+
+    }
+
 }
