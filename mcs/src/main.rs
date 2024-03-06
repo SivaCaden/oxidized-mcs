@@ -17,17 +17,17 @@ pub struct Server {
 impl Server {
 
     pub fn new(host: String, port: u16) -> Server {
+                    
+
         Server {
             host: host, 
             port: port,
-            server_socket: net::UdpSocket::bind(
+            server_socket: net::UdpSocket::bind({
+                (host.to_string() + port.to_string())
+            }).expect("uh oh spaghettio")
+
         }
-    }
-
-
-
-
-    pub fn close() -> 
+    } 
 
 }
 
@@ -40,6 +40,7 @@ fn main() ->  Result<()> {
     println!("Spooling Server...");
 
 
+    
 
 
 
