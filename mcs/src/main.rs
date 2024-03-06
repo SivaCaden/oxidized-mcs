@@ -1,11 +1,51 @@
 
-
-
+use std::net;
+use std::io::{Result};
 
 pub mod mc_datatypes;
 
 
-fn main() {
 
-    println!("Hello, world!");
+
+
+pub struct Server {
+    host: String,
+    port: u16,
+    server_socket: net::UdpSocket,
+}
+
+impl Server {
+
+    pub fn new(host: String, port: u16) -> Server {
+        Server {
+            host: host, 
+            port: port,
+            server_socket: net::UdpSocket::bind(
+        }
+    }
+
+
+
+
+    pub fn close() -> 
+
+}
+
+
+
+
+
+fn main() ->  Result<()> {
+
+    println!("Spooling Server...");
+
+
+
+
+
+
+
+
+    Ok(())
+
 }

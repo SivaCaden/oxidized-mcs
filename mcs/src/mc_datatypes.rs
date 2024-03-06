@@ -6,8 +6,6 @@ pub struct McBool {
     cond: bool
 }
 
-
-
 impl McBool {
     pub fn new(value: i8) -> McBool{
         match value {
