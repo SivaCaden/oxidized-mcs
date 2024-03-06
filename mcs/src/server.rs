@@ -26,8 +26,13 @@ impl Server {
 
     pub fn run(self) {
     
-        
+        loop {
+            let mut client = self.server_socket.accept();
+            println!("new client connected");
 
+
+
+        }
 
     }
 
