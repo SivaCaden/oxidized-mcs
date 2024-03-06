@@ -1,19 +1,19 @@
-use std::net;
+use tokio::net::TcpListener;
 
 pub struct Server {
     host: String,
     port: u16,
-    server_socket: net::TcpListener,
+    server_socket: TcpListener,
 }
 
 impl Server {
 
-    pub fn new(host: String, port: u16) -> Server {
+    pub async fn new(host: String, port: u16) -> Server {
         let falure = host.clone();
         let tears = port.clone();
         let sock_addr = host + ":" + &port.to_string();
         
-        let socket = net::TcpListener::bind(sock_addr);
+        let socket = TcpListener::bind(sock_addr).await;
 
 
         Server {
