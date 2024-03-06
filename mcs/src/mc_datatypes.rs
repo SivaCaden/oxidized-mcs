@@ -1,52 +1,96 @@
+// Types for the Minecraft Server Protocol based on https://wiki.vg/Protocol#Data_types
+// Authors: Foster Sullivan (SirGoatsalot), Caden Siva (SivaCaden)
+// Created: 3/4/2024
 
+// True is encoded as 0x01, false as 0x00.
+pub struct Bool { }
 
-
-
-pub struct McBool {
-    cond: bool
-}
-
-impl McBool {
-    pub fn new(value: i8) -> McBool{
+impl Bool {
+    pub fn encode(value: bool) -> i8 {
         match value {
-            0x01 => {
-                McBool{cond:true}
-            }
-            0x00 => {
-                McBool{cond:false}
-            }
-            _ => {panic!("not expected 0x01 or 0x00, got : {value}")}
+            true => 0x01,
+            false => 0x00
         }
     }
-    pub fn val(self) -> bool {
-        self.cond
-    }
-    pub fn to_mc(self) -> i8 {
-         match self.cond {
-             true => { 0x01 }
-             false => { 0x00 }
+
+    pub fn decode(value: i8) -> bool {
+         match value {
+            0x01 => true,
+            0x00 => false
          }
     }
 }
 
-pub struct McByte {
-    value: i8,
+// Signed 8-bit integer, two's complement.
+pub struct Byte { }
+
+impl Byte {
+    pub fn encode(value: i8) -> i8 { value }
+
+    pub fn decode(value: i8) -> i8 { value }
 }
 
-impl McByte {
-    pub fn new(val: i8) -> McByte {
-        McByte{ value:val }
-    }
-    pub fn val(self) -> i8 {
-       self.value 
-    }
+// Unsigned 8-bit integer.
+pub struct UByte { }
+
+impl UByte {
+    pub fn encode(value: u8) -> u8 { value }
+
+    pub fn decode(value: u8) -> u8 { value }
 }
 
-pub struct McUByte { value: u8 }
+// Signed 16-bit integer, two's complement.
+pub struct Short { }
 
-impl McUByte {
-    pub fn new(val: u8) -> McUByte { McUByte{value: val}}
+impl Short {
+    pub fn encode(value: i16) -> i16 { value }
 
-    pub fn val(self) -> u8 { self.value }
-
+    pub fn decode(value: i16) -> i16 { value }
 }
+
+// Unsigned 16-bit integer.
+pub struct UShort { }
+
+impl UShort {
+    pub fn encode(value: u16) -> u16 { value }
+
+    pub fn decode(value: u16) -> u16 { value }
+}
+
+// Signed 32-bit Integer, two's complement.
+pub struct Int { }
+
+impl Int {
+    pub fn encode(value: i32) -> i32 { value }
+
+    pub fn decode(value: i32) -> i32 { value }
+}
+
+// Signed 64-bit integer, two's complement.
+pub struct Long { }
+
+impl Long {
+    pub fn encode(value: i64) -> i64 { value }
+
+    pub fn decode(value: i64) -> i64 { value }
+}
+
+// Single-Precision 32-bit floating point number.
+pub struct Float { }
+
+impl Float {
+    pub fn encode(value: f32) -> f32 { value }
+
+    pub fn decode(value: f32) -> f32 { value }
+}
+
+// Double-Precision 64-bit floating point number.
+pub struct Double { }
+
+impl Double {
+    pub fn encode(value: f64) -> f64 { value }
+
+    pub fn decode(value: f64) -> f64 { value }
+}
+
+
