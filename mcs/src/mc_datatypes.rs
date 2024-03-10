@@ -24,10 +24,8 @@ impl Bool {
 }
 
 // Signed 8-bit integer, two's complement.
-#[allow(dead_code)]
 pub struct Byte;
 
-#[allow(dead_code)]
 impl Byte {
     pub fn encode(value: i8) -> u8 { 
         if value >= 0 { value.try_into().unwrap() }
@@ -79,9 +77,9 @@ pub struct Int;
 
 #[allow(dead_code)]
 impl Int {
-    pub fn encode(value: i32) -> i32 { value }
+    pub fn encode(value: i32) -> [u8; 4] { [0, 0, 0, 0] }
 
-    pub fn decode(value: i32) -> i32 { value }
+    pub fn decode(value: i32) -> i32 { 0 }
 }
 
 // Signed 64-bit integer, two's complement.
