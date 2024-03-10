@@ -28,9 +28,6 @@ fn main() ->  Result<()> {
                 handle_connection(stream.unwrap());
             }
         }
-
-
-
     }
 
 
@@ -40,10 +37,24 @@ fn main() ->  Result<()> {
 
 
 pub fn handle_connection( mut stream: TcpStream ) {
-    let buf_reader = BufReader::new(&mut stream);
+    let mut buf_reader = BufReader::new(&mut stream);
 
-    let fuck = buf_reader.buffer();
-    let size = fuck.len();
+    let mut buf: Vec<u8> = Vec::new();
+
+    let data = buf_reader.read(&mut buf);
+    
+    match data {
+        Ok(_) => {
+            println!("Data received");
+        },
+        Err(e) => {
+            println!("Error: {}", e);
+        }
+    }
+
+    let size = buf.len();
+
+
     println!("{}", size);
     
     
