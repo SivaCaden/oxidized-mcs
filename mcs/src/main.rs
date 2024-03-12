@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_variables)]
 mod mc_datatypes;
 
 #[allow(unused_imports)]
@@ -6,8 +7,6 @@ use mc_datatypes::*;
 
 fn main() { 
 
-    let f1: f32 = 6.9;
-    println!("{:X}", f1.as_bytes());
 }
 
 #[cfg(test)]
