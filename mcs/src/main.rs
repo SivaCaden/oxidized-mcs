@@ -17,7 +17,7 @@ fn main() ->  Result<()> {
     println!("Spooling Server...");
 
     {
-        let host = "192.168.1.200";
+        let host = "localhost";
         let port: u16 = 25565;
         let server = TcpListener::bind((host, port)).unwrap();
         
@@ -44,8 +44,9 @@ pub fn handle_connection( mut stream: TcpStream ) {
     let data = buf_reader.read(&mut buf);
     
     match data {
-        Ok(_) => {
+        Ok(fuck) => {
             println!("Data received");
+            
         },
         Err(e) => {
             println!("Error: {}", e);
