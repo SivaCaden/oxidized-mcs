@@ -6,7 +6,7 @@ use std::{
 use std::fs;
 
 pub mod mc_datatypes;
-
+use mc_datatypes::VarInt;
 
 
 pub struct PubKeyInfo {
@@ -61,7 +61,24 @@ pub enum PacketType {
 }
 
 
+fn parse_data(data: &[u8]) -> Vec<i32>{
+    let mut some_varint:Vec<u8> = Vec::new();
+    let mut out_vec: Vec<i32> = Vec::new();
 
+    for byte in data{
+        if byte & 0b10000000 == 0b10000000{
+            some_varint.push(byte);
+        }
+        else {
+            some_varint.push(byte);
+            out_vec.push(VarInt::decode(&some_varint.try_into()));
+            some_varint.clear();
+        }
+    }
+
+    out_vec
+   
+}
 
 
 pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
@@ -73,8 +90,8 @@ pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
     let size = data.len();
     println!("Data Size: {}", size);
 
-    for i in data {
-        println!("{:}", i);
+    for i in data{
+        println!("{:08b}", i);
     }
 
     
