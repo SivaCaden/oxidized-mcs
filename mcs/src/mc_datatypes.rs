@@ -128,7 +128,7 @@ impl VarInt {
         
     } 
 
-    pub fn decode(bytes: &[u8]) -> i32 {
+    pub fn decode(bytes: Vec<u8>) -> i32 {
         // FORMAT: 0b00000001 -> 1
         // 0b10000001, 0b00000001 -> 129
         let data_bits = 0x7F;
