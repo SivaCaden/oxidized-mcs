@@ -59,37 +59,31 @@ pub enum PacketType {
     TimeAlive (String, Vec<String>),
     ChatMessage (String, Vec<String>), 
 }
-const JOINGAME = ( "join_game".to_string(), vec!["i32", "u8", "u8", "u8", "u8", "u8", "bool;
 
 
 
 
 
-pub fn handle_connection( mut stream: TcpStream ) {
+pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
     let mut buf_reader = BufReader::new(&mut stream);
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut data = Vec::new();
+    let _ = buf_reader.read_to_end(&mut data);
 
-    let data = buf_reader.read(&mut buf);
+    let size = data.len();
+    println!("Data Size: {}", size);
 
-    
-
-    let size = buf.len();
-
-
-    println!("{}", size);
-    
-    
-
-
+    for i in data {
+        println!("{:}", i);
+    }
 
     
-
+    Ok(())
     
 }
 
 
-fn start_encryption() -> T {
+fn start_encryption() {
     let mut data = String::new();
 
 
