@@ -111,11 +111,30 @@ impl Double {
     pub fn decode(value: [u8; 8]) -> f64 { 0.0 as f64 }
 }
 
+// A sequence of Unicode scalar values. See https://wiki.vg/Protocol#Type:String
+pub struct StringMC { }
+
+impl StringMC {
+    pub fn encode(value: String) -> Vec<u8> { vec![0] }
+
+    pub fn decode(data: Vec<u8>) -> ( String, Vec<u8> ) {
+        // A String of UTF-8 Characters, prefixed with its size in bytes as a VarInt.
+        let mut length_buffer: Vec<u8> = Vec::new();
+        let length: i32;
+
+        // Step 1: Find the VarInt
+        let ( length, data ) = VarInt::decode(data);
+
+        // Step 2: Interpret those as a UTF-8 String
+        ( String::from_utf8(data[..length as usize].to_vec()).unwrap(), data[length as usize..].to_vec() ) 
+     } 
+}
+
 // Varialbe-length data encoding a two's complement 32-bit integer. See https://wiki.vg/Protocol#VarInt_and_VarLong
 pub struct VarInt { }
 
 impl VarInt {
-    pub fn encode(value: i32) -> Vec<u8> {
+    pub fn encode(value: i32, mut packet: Vec<u8>) -> Vec<u8> {
         // 129 ->  [0b10000001, 0b00000001]
         let segment_bits = 0x00;
         let current_byte_out = 0;
@@ -125,23 +144,24 @@ impl VarInt {
         for byte in bytes {
             println!("BYTE INP 0b{:08b}", byte)
         }
-        result
-        
+        packet
     } 
 
-    pub fn decode(bytes: Vec<u8>) -> i32 {
+    pub fn decode(bytes: Vec<u8>) -> (i32, Vec<u8>) {
         // FORMAT: 0b00000001 -> 1
         // 0b10000001, 0b00000001 -> 129
-        let data_bits = 0x7F;
+        let data_bits = 0b01111111;
+        let bytes_clone = bytes.clone();
         let mut position = 0;
         let mut result: i32 = 0;
-        for byte in bytes.iter().rev() {
-            println!("BYTE INP 0b{:08b}", byte);
+        for byte in bytes.iter() {
+            info!("BYTE INP 0b{:08b}", byte);
             if position >= 32 { panic!("VarInt is too big!") }                      
             result |= ((byte & data_bits) << position) as i32;
+            bytes_clone.remove(0);
             position += 7;  
         }
-        result
+        (result, bytes_clone)
     }
 
 }
