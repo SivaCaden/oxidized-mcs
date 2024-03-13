@@ -52,10 +52,11 @@ pub struct Short;
 
 impl Short {
     pub fn encode(value: i16) -> [u8; 2] { 
-        let mut unsplit_value = value;
-        let first_bit = (value & 0xFF00 >> 16) as u8;
-        let second_bit = (value & 0x00FF) as u8;
-        [ first_bit, second_bit ]
+        // let mut unsplit_value = value;
+        // let first_bit = (value & 0xFF00 >> 16) as u8;
+        // let second_bit = (value & 0x00FF) as u8;
+        // [ first_bit, second_bit ]
+        [0, 0]
     }
 
     pub fn decode(value: [u8; 2]) -> i16 { 0 }
@@ -66,7 +67,7 @@ pub struct UShort;
 
 impl UShort {
     pub fn encode(value: u16) -> [u8; 2] { 
-        
+        [0, 0]
     }
 
     pub fn decode(value: [u8; 2]) -> u16 { 0 }
@@ -107,5 +108,40 @@ impl Double {
     pub fn encode(value: f64) -> [u8; 8] { [0, 0, 0, 0, 0, 0, 0, 0] }
 
     pub fn decode(value: [u8; 8]) -> f64 { 0.0 as f64 }
+}
+
+// Varialbe-length data encoding a two's complement 32-bit integer. See https://wiki.vg/Protocol#VarInt_and_VarLong
+pub struct VarInt { }
+
+impl VarInt {
+    pub fn encode(value: i32) -> Vec<u8> {
+        // 129 ->  [0b10000001, 0b00000001]
+        let segment_bits = ;
+        let current_byte_out = 0;
+        let mut result: Vec<u8> = vec![];
+        let value = u32::from_ne_bytes(value.to_ne_bytes());
+        let bytes = value.to_be_bytes();
+        for byte in bytes {
+            println!("BYTE INP 0b{:08b}", byte)
+            if value & 
+        }
+        result
+        
+    } 
+
+    pub fn decode(bytes: &[u8]) -> i32 {
+        // FORMAT: 0b00000001 -> 1
+        // 0b10000001, 0b00000001 -> 129
+        let data_bits = 0x7F;
+        let mut position = 0;
+        let mut result: i32 = 0;
+        for byte in bytes {
+            result |= ((byte & data_bits) << position) as i32;
+            position += 7;  
+            if position >= 32 { panic!("VarInt is too big!") }                      
+        }
+        result
+    }
+
 }
 

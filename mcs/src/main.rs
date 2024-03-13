@@ -6,7 +6,10 @@ mod mc_datatypes;
 use mc_datatypes::*;
 
 fn main() { 
-
+    let input: [u8; 2] = [0x81, 0x40];
+    println!("{}", VarInt::decode(&input));
+    let input = 360;
+    println!("{:?}", VarInt::encode(input));
 }
 
 #[cfg(test)]
@@ -113,4 +116,17 @@ mod tests {
         assert_eq!(6.9 as f64, Double::decode([0x40, 0x1B, 0x99, 0x99, 0x99, 0x99, 0x99, 0x9A]));
     }
 
+    #[test]
+    fn varint_encode() {
+        assert_eq!([], VarInt::encode(-2147483648 as i32));
+        assert_eq!([0x81, 0x00], VarInt::encode(1 as i32));
+        assert_eq!([], VarInt::encode(2147483647 as i32));
+    }
+
+    #[test]
+    fn varint_decode() {
+        assert_eq!(-2147483648 as i32, VarInt::decode(&[]));
+        assert_eq!(1 as i32, VarInt::decode(&[0x81, 0x00]));
+        assert_eq!(2147483647 as i32, VarInt::decode(&[]));
+    }
 }
