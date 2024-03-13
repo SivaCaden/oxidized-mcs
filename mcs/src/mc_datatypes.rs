@@ -3,6 +3,7 @@
 // Created: 3/4/2024
 
 // True is encoded as 0x01, false as 0x00.
+use log::info;
 
 pub struct Bool;
 
@@ -134,10 +135,10 @@ impl VarInt {
         let data_bits = 0x7F;
         let mut position = 0;
         let mut result: i32 = 0;
-        for byte in bytes {
+        for byte in bytes.iter().rev() {
+            if position >= 32 { panic!("VarInt is too big!") }                      
             result |= ((byte & data_bits) << position) as i32;
             position += 7;  
-            if position >= 32 { panic!("VarInt is too big!") }                      
         }
         result
     }
