@@ -116,14 +116,13 @@ pub struct VarInt { }
 impl VarInt {
     pub fn encode(value: i32) -> Vec<u8> {
         // 129 ->  [0b10000001, 0b00000001]
-        let segment_bits = ;
+        let segment_bits = 0x00;
         let current_byte_out = 0;
         let mut result: Vec<u8> = vec![];
         let value = u32::from_ne_bytes(value.to_ne_bytes());
         let bytes = value.to_be_bytes();
         for byte in bytes {
             println!("BYTE INP 0b{:08b}", byte)
-            if value & 
         }
         result
         
