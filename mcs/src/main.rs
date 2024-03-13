@@ -1,25 +1,20 @@
+#[allow(unused_imports, 
+        dead_code, 
+        unused_variables,
+        unused_mut,
+        unused_assignments
+        )]
 use std::{
     io::{ prelude::*, BufReader, Result, Error},
     net::{TcpListener, TcpStream},
     collections::HashMap,
 };
-use log::info;
 
-use std::fs;
 
 pub mod mc_datatypes;
 use mc_datatypes::VarInt;
 
-
-pub struct PubKeyInfo {
-    sequence: String,
-    algorithm: String,
-    parameters: String,
-}
-pub struct PubKey {
-    modulus: usize,
-    public_exponent: usize,
-}
+pub mod big_parse;
 
 
 
@@ -63,30 +58,7 @@ pub enum PacketType {
 }
 
 
-fn parse_length_pack_id(data: &[u8]) -> (Vec<i32>, Vec<u8>){
-    let mut some_varint:Vec<u8> = Vec::new();
-    let mut out_vec: Vec<i32> = Vec::new();
-    let mut FUCK: Vec<u8> = Vec::new();
-    let mut count = 0;
 
-    for byte in data{
-        if count >= 2 {
-            FUCK.push(*byte);
-            continue;
-        }
-        if byte & 0b10000000 == 0b10000000{
-            some_varint.push(*byte);
-        }
-        if byte & 0b10000000 != 0b10000000 {
-            count += 1;
-            some_varint.push(*byte);
-            out_vec.push(VarInt::decode(some_varint.clone()));
-            println!("END OF NUMBER");
-            some_varint.clear();
-        }
-    }
-    (out_vec, FUCK)
-}
 
 
 pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
@@ -98,10 +70,10 @@ pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
     let size = data.len();
     println!("Data Size: {}", size);
 
-    let (length_id, data) = parse_length_pack_id(&data);
-    println!("Packet Length: {0}\nPacketID:{1}", length_id[0], length_id[1]); 
+    let (packet_length, packet_id, data) = parse_length_pack_id(&data);
+    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id); 
     for item in data {
-        println!("{:08b}", item);
+        println!("{:02X}", item);
     }
     
     Ok(())
