@@ -1,66 +1,21 @@
 use crate::mc_datatypes::VarInt;
 
-fn pain_packet_info(data: &[u8]) -> (u32, u32, Vec<u8>) {
-    let mut some_varint: Vec<u8> = Vec::new();
-    let mut out_vec: Vec<i32> = Vec::new();
-    let mut out_data: Vec<u8> = Vec::new();
-    let mut count = 0;
-
-    for byte in data {
-        if count >= 2 {
-            out_data.push(*byte);
-            continue;
-        }
-
-        if byte & 0x80 == 0x80 {
-            some_varint.push(*byte);
-        }
-        if byte & 0x80 != 0x80 {
-            count += 1;
-            some_varint.push(*byte);
-            out_vec.push(VarInt::decode(some_varint));
-            println!("END OF NUMBER");
-            some_varint.clear();
-        }
-    }
-    let packet_length = out_vec[0] as u32;
-    let packet_id = out_vec[1] as u32;
-    (packet_length, packet_id, out_data)
-}
-
-
-fn pain_string_decode(data: &[u8]) -> (u32, u32, Vec<u8>) {
-    let mut some_varint: Vec<u8> = Vec::new();
-    let mut out_vec: Vec<i32> = Vec::new();
-    let mut out_data: Vec<u8> = Vec::new();
-    let mut count = 0;
-
-    for byte in data {
-        if count >= 2 {
-            out_data.push(*byte);
-            continue;
-        }
-
-        if byte & 0x80 == 0x80 {
-            some_varint.push(*byte);
-        }
-        if byte & 0x80 != 0x80 {
-            count += 1;
-            some_varint.push(*byte);
-            out_vec.push(VarInt::decode(some_varint));
-            println!("END OF NUMBER");
-            some_varint.clear();
-        }
-    }
-    let packet_length = out_vec[0] as u32;
-    let packet_id = out_vec[1] as u32;
-    (packet_length, packet_id, out_data)
-}
-
-
 pub fn parse<T>(data: &[u8]) -> Data<T> {
-   
-    let (packet_length, packet_id, out_data) = pain_packet_info(data);
+    let data = data.to_vec();
+    let (packet_length, data) = VarInt::decode(data);
+    let (packet_id, data) = match packet_length {
+        0x00 => {
+            panic!("Packet Length is 0x00");
+            
+        }
+        _ => {
+            VarInt::decode(data)
+        }
+    };
+    
+
+
+
 
     match packet_id {
         _ => {
