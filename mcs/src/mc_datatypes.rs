@@ -151,15 +151,17 @@ impl VarInt {
         // FORMAT: 0b00000001 -> 1
         // 0b10000001, 0b00000001 -> 129
         let data_bits = 0b01111111;
+        let signal_bit = 0b10000000;
         let mut bytes_clone = bytes.clone();
         let mut position = 0;
         let mut result: i32 = 0;
         for byte in bytes.iter() {
             info!("BYTE INP 0b{:08b}", byte);
-            if position >= 32 { panic!("VarInt is too big!") }                      
             result |= ((byte & data_bits) << position) as i32;
             bytes_clone.remove(0);
+            if (byte & signal_bit) == signal_bit { break }
             position += 7;  
+            if position >= 32 { panic!("VarInt is too big!") }                      
         }
         (result, bytes_clone)
     }
