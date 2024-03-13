@@ -151,7 +151,7 @@ impl VarInt {
         // FORMAT: 0b00000001 -> 1
         // 0b10000001, 0b00000001 -> 129
         let data_bits = 0b01111111;
-        let bytes_clone = bytes.clone();
+        let mut bytes_clone = bytes.clone();
         let mut position = 0;
         let mut result: i32 = 0;
         for byte in bytes.iter() {
