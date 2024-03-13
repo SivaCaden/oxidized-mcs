@@ -3,6 +3,8 @@ use std::{
     net::{TcpListener, TcpStream},
     collections::HashMap,
 };
+use log::info;
+
 use std::fs;
 
 pub mod mc_datatypes;
@@ -61,23 +63,29 @@ pub enum PacketType {
 }
 
 
-fn parse_data(data: &[u8]) -> Vec<i32>{
+fn parse_length_pack_id(data: &[u8]) -> (Vec<i32>, Vec<u8>){
     let mut some_varint:Vec<u8> = Vec::new();
     let mut out_vec: Vec<i32> = Vec::new();
+    let mut FUCK: Vec<u8> = Vec::new();
+    let mut count = 0;
 
     for byte in data{
-        if byte & 0b10000000 == 0b10000000{
-            some_varint.push(byte);
+        if count >= 2 {
+            FUCK.push(*byte);
+            continue;
         }
-        else {
-            some_varint.push(byte);
-            out_vec.push(VarInt::decode(&some_varint.try_into()));
+        if byte & 0b10000000 == 0b10000000{
+            some_varint.push(*byte);
+        }
+        if byte & 0b10000000 != 0b10000000 {
+            count += 1;
+            some_varint.push(*byte);
+            out_vec.push(VarInt::decode(some_varint.clone()));
+            println!("END OF NUMBER");
             some_varint.clear();
         }
     }
-
-    out_vec
-   
+    (out_vec, FUCK)
 }
 
 
@@ -90,18 +98,15 @@ pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
     let size = data.len();
     println!("Data Size: {}", size);
 
-    for i in data{
-        println!("{:08b}", i);
+    let (length_id, data) = parse_length_pack_id(&data);
+    println!("Packet Length: {0}\nPacketID:{1}", length_id[0], length_id[1]); 
+    for item in data {
+        println!("{:08b}", item);
     }
-
     
     Ok(())
     
 }
 
 
-fn start_encryption() {
-    let mut data = String::new();
 
-
-}

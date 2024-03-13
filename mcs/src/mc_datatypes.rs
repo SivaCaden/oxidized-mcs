@@ -136,7 +136,7 @@ impl VarInt {
         let mut position = 0;
         let mut result: i32 = 0;
         for byte in bytes.iter().rev() {
-            info!("BYTE INP 0b{:08b}", byte);
+            println!("BYTE INP 0b{:08b}", byte);
             if position >= 32 { panic!("VarInt is too big!") }                      
             result |= ((byte & data_bits) << position) as i32;
             position += 7;  
