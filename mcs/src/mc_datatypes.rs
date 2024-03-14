@@ -147,16 +147,27 @@ impl VarInt {
         packet
     } 
 
-    pub fn decode(bytes: Vec<u8>) -> (i32, Vec<u8>) {
+    pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) {
         // Step 1: Separate which bytes are in the varint
-        let signal_bit = 0x80; // 0b10000000
-        let bytes_out = bytes.clone();
-        let buf: Vec<u8> = vec![];
-        for byte in bytes { 
-           if (byte & signal_bit) == signal_bit {  } 
+        let signal_bit = 0b10000000; 
+        let mut packet_out = packet.clone();
+        let mut buf: Vec<u8> = vec![];
+        for byte in packet { 
+            buf.push(byte);
+            packet_out.remove(0);
+            if (byte & signal_bit) != signal_bit { break } // END OF NUMBER 
         }
 
-        (0, bytes_out)
+        // Step 2: Decode the VarInt from the buffer
+        let data_bits = 0b01111111;
+        let mut value: i32 = 0;
+        let mut position = 0;
+        for byte in buf {
+            value |= ((byte & data_bits) as i32) << position;
+            position += 7;
+        }
+
+        (value, packet_out)
     }
 
 }
