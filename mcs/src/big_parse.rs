@@ -1,6 +1,17 @@
 use crate::mc_datatypes::VarInt;
 
-pub fn parse<T>(data: &[u8]) -> Data<T> {
+pub fn parse<T>(data: &[u8]){
+    let (packet_length, packet_id, data) = parse_length_packid(data); 
+    match packet_id {
+        _ => {
+            println!("Packet ID: {}", packet_id);
+            Parse_Handshake(packet_length, packet_id, &data);
+        }
+    }
+
+}
+
+pub fn parse_length_packid(data: &[u8]) -> (i32, i32, Vec<u8>) {
     let data = data.to_vec();
     let (packet_length, data) = VarInt::decode(data);
     let (packet_id, data) = match packet_length {
@@ -12,19 +23,10 @@ pub fn parse<T>(data: &[u8]) -> Data<T> {
             VarInt::decode(data)
         }
     };
-    
-
-
-
-
-    match packet_id {
-        _ => {
-            println!("Packet ID: {}", packet_id);
-            Parse_Handshake(packet_length, packet_id, &out_data)
-        }
-    }
-
+    (packet_length, packet_id, data)
 }
+
+
 
 pub struct Data<T> {
     pub packet_length: u32,
@@ -43,14 +45,14 @@ pub struct Handshake {
 }
 
 
-pub fn Parse_Handshake<T>(length: u32, id: u32, data: &[u8]) -> Data<T>{
+pub fn Parse_Handshake(length: i32, id: i32, data: &[u8]){
     let protocol_version: i32;
     let server_address: String;
     let server_port: u16;
     let next_state: i32;
 
     let expected_length = length as u32;
-    protocol_version = VarInt::decode(data.to_vec());
+    let (protocol_version, data) = VarInt::decode(data.to_vec());
     
 
 

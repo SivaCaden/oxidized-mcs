@@ -15,7 +15,7 @@ use std::{
 pub mod mc_datatypes;
 use mc_datatypes::VarInt;
 
-// pub mod big_parse;
+pub mod big_parse;
 
 
 
