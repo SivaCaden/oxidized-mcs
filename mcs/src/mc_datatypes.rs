@@ -148,22 +148,15 @@ impl VarInt {
     } 
 
     pub fn decode(bytes: Vec<u8>) -> (i32, Vec<u8>) {
-        // FORMAT: 0b00000001 -> 1
-        // 0b10000001, 0b00000001 -> 129
-        let data_bits = 0b01111111;
-        let signal_bit = 0b10000000;
-        let mut bytes_clone = bytes.clone();
-        let mut position = 0;
-        let mut result: i32 = 0;
-        for byte in bytes.iter() {
-            info!("BYTE INP 0b{:08b}", byte);
-            result |= ((byte & data_bits) << position) as i32;
-            bytes_clone.remove(0);
-            if (byte & signal_bit) == signal_bit { break }
-            position += 7;  
-            if position >= 32 { panic!("VarInt is too big!") }                      
+        // Step 1: Separate which bytes are in the varint
+        let signal_bit = 0x80; // 0b10000000
+        let bytes_out = bytes.clone();
+        let buf: Vec<u8> = vec![];
+        for byte in bytes { 
+           if (byte & signal_bit) == signal_bit {  } 
         }
-        (result, bytes_clone)
+
+        (0, bytes_out)
     }
 
 }
