@@ -134,17 +134,16 @@ impl StringMC {
 pub struct VarInt { }
 
 impl VarInt {
-    pub fn encode(value: i32, mut packet: Vec<u8>) -> Vec<u8> {
-        // 129 ->  [0b10000001, 0b00000001]
-        let segment_bits = 0x00;
-        let current_byte_out = 0;
-        let mut result: Vec<u8> = vec![];
-        let value = u32::from_ne_bytes(value.to_ne_bytes());
-        let bytes = value.to_be_bytes();
-        for byte in bytes {
-            println!("BYTE INP 0b{:08b}", byte)
-        }
-        packet
+    pub fn encode(value: i32) -> Vec<u8> {
+        // Step 1: Split value into bytes
+        let segment_bits = 0b01111111;
+        let continue_bit = 0b10000000;
+        let raw_bytes = value.to_be_bytes();
+        let raw_value: u32 = u32::from_be_bytes(raw_bytes);
+
+        for byte in raw_bytes { }
+        
+        vec![0] 
     } 
 
     pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) {
