@@ -111,11 +111,20 @@ impl Double {
     pub fn decode(value: [u8; 8]) -> f64 { 0.0 as f64 }
 }
 
-// A sequence of Unicode scalar values. See https://wiki.vg/Protocol#Type:String
+// A sequence of Unicode scalar values appended by its length. See https://wiki.vg/Protocol#Type:String
 pub struct StringMC { }
 
 impl StringMC {
-    pub fn encode(value: String) -> Vec<u8> { vec![0] }
+    pub fn encode(value: String) -> Vec<u8> { 
+        // Step 1: Convert length of String into VarInt and make that the first thing
+        let mut bytes_out: Vec<u8> = vec![];
+        VarInt::encode(value.len() as i32, &mut bytes_out); 
+
+        // Step 2: Append utf-8 bytes to out bytes
+        let string_bytes = value.into_bytes();
+        for byte in string_bytes { bytes_out.push(byte) }
+        bytes_out
+    }
 
     pub fn decode(data: Vec<u8>) -> ( String, Vec<u8> ) {
         // A String of UTF-8 Characters, prefixed with its size in bytes as a VarInt.
@@ -134,16 +143,27 @@ impl StringMC {
 pub struct VarInt { }
 
 impl VarInt {
-    pub fn encode(value: i32) -> Vec<u8> {
-        // Step 1: Split value into bytes
+    pub fn encode(value: i32, packet: &mut Vec<u8>) -> &mut Vec<u8> {
+        // Step 1: Split value into bytes & append continue bits to the front
         let segment_bits = 0b01111111;
         let continue_bit = 0b10000000;
-        let raw_bytes = value.to_be_bytes();
-        let raw_value: u32 = u32::from_be_bytes(raw_bytes);
 
-        for byte in raw_bytes { }
+        let mut raw_bytes = value.to_be_bytes();
+        let mut raw_value: u32 = u32::from_be_bytes(raw_bytes);
+        let mut out_bytes: Vec<u8> = vec![];
+
+        loop { 
+            if (raw_value & !segment_bits) == 0 { 
+                out_bytes.push(raw_value.try_into().unwrap());
+                break;
+            }
+            out_bytes.push( ((raw_value & segment_bits) | continue_bit).try_into().unwrap() );
+            raw_value = raw_value >> 7;
+        } 
         
-        vec![0] 
+        // Step 2: Add those bytes to the end of the packet and return it
+        for byte in out_bytes { packet.push(byte) }
+        packet
     } 
 
     pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) {

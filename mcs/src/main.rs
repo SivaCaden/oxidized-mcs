@@ -29,7 +29,7 @@ pub enum PacketType {
 }
 
 pub mod mc_datatypes;
-use mc_datatypes::VarInt;
+use mc_datatypes::*;
 
 pub mod big_parse;
 use big_parse::*;
@@ -117,6 +117,7 @@ mod tests {
 
     #[test]
     fn varint() {
+        // DECODE TESTS
         let mut packet = vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07,// Max Value of VarInt 2147483647
                             0xDD, 0xC7, 0x01,              // 25565, default port
                             0x01,                          // 1
@@ -133,26 +134,46 @@ mod tests {
         assert_eq!(num4, -2147483648);
         assert_eq!(packet, vec![0x69, 0x69]);
 
+        // ENCODE TESTS
         let num1: i32 = 2147483647;
         let num2: i32 = 25565;
         let num3: i32 = 1;
         let num4: i32 = -2147483648;
+        
+        let mut out: Vec<u8> = vec![];
 
-        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07], VarInt::encode(num1));
-        assert_eq!(vec![0xDD, 0xC7, 0x01], VarInt::encode(num2));
-        assert_eq!(vec![0x01], VarInt::encode(num3));
-        assert_eq!(vec![0x80, 0x80, 0x80, 0x80, 0x08], VarInt::encode(num4));
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07], *VarInt::encode(num1, &mut out));
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01], *VarInt::encode(num2, &mut out));
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01], *VarInt::encode(num3, &mut out));
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01, 0x80, 0x80, 0x80, 0x80, 0x08], *VarInt::encode(num4, &mut out));
 
     }
 
     #[test]
     fn string_mc() {
-        let packet = [  
+        // DECODE TEST
+        let packet = vec![  0x28,                                        // VarInt length
                         0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
                         0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
                         0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
                         0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
-                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e]; // To be or not to be, That is the question
+                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e,  // To be or not to be, That is the question
+                        0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]; // Misc. other data
+
+       let (string, packet) = StringMC::decode(packet);
+       assert_eq!(string, String::from("To be or not to be, That is the question"));
+       assert_eq!(packet, vec![0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]);
+
+       // ENCODE TEST
+       let packet = vec![  0x28,                                         // VarInt length
+                        0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
+                        0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
+                        0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
+                        0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
+                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e]; // To be or not to be,
+                                                                         // That is the question
+       let string = String::from("To be or not to be, That is the question"); 
+       assert_eq!(packet, StringMC::encode(string)); 
     }
 }
 
