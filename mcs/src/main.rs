@@ -1,8 +1,9 @@
-#[allow(unused_imports, 
+#![allow(unused_imports, 
         dead_code, 
         unused_variables,
         unused_mut,
-        unused_assignments
+        unused_assignments,
+        unreachable_code,
         )]
 use std::{
     io::{ prelude::*, BufReader, Result, Error},
