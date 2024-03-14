@@ -3,7 +3,7 @@
         unused_variables,
         unused_mut,
         unused_assignments,
-        unreachable_code
+        unreachable_code,
         )]
 use std::{
     io::{ prelude::*, BufReader, Result, Error},
