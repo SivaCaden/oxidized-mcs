@@ -1,23 +1,21 @@
 use crate::mc_datatypes::VarInt;
 
 pub fn parse<T>(data: &[u8]){
-    let (packet_length, packet_id, data) = parse_length_packid(data); 
+    let (packet_length, packet_id, data) = parse_length_packid(data.to_vec()); 
     match packet_id {
         _ => {
             println!("Packet ID: {}", packet_id);
-            Parse_Handshake(packet_length, packet_id, &data);
+            parse_handshake(packet_length, packet_id, &data);
         }
     }
-
 }
 
-pub fn parse_length_packid(data: &[u8]) -> (i32, i32, Vec<u8>) {
-    let data = data.to_vec();
+pub fn parse_length_packid(data: Vec<u8>) -> (i32, i32, Vec<u8>) {
+    let data = data;
     let (packet_length, data) = VarInt::decode(data);
     let (packet_id, data) = match packet_length {
         0x00 => {
             panic!("Packet Length is 0x00");
-            
         }
         _ => {
             VarInt::decode(data)
@@ -45,7 +43,7 @@ pub struct Handshake {
 }
 
 
-pub fn Parse_Handshake(length: i32, id: i32, data: &[u8]){
+pub fn parse_handshake(length: i32, id: i32, data: &[u8]){
     let protocol_version: i32;
     let server_address: String;
     let server_port: u16;

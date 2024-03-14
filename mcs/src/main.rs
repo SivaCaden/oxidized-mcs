@@ -4,43 +4,13 @@
         unused_mut,
         unused_assignments,
         unreachable_code,
+        non_snake_case,
         )]
 use std::{
-    io::{ prelude::*, BufReader, Result, Error},
-    net::{TcpListener, TcpStream},
-    collections::HashMap,
+    io::{ prelude::*, BufReader, Result, Error, ErrorKind},
+        collections::HashMap,
 };
-
-
-pub mod mc_datatypes;
-use mc_datatypes::VarInt;
-
-pub mod big_parse;
-
-
-
-fn main() ->  Result<()> {
-
-    println!("Spooling Server...");
-
-    {
-        let host = "localhost";
-        let port: u16 = 25565;
-        let server = TcpListener::bind((host, port)).unwrap();
-        
-        loop {
-
-            for stream in server.incoming() {
-                println!("new client connected");
-                handle_connection(stream.unwrap());
-            }
-        }
-    }
-
-
-    Ok(())
-
-}
+use tokio::net::{TcpListener, TcpStream};
 pub struct PackType {
     pub header: String,
     pub data_vec: Vec<String>,
@@ -58,27 +28,87 @@ pub enum PacketType {
     ChatMessage (String, Vec<String>), 
 }
 
+pub mod mc_datatypes;
+use mc_datatypes::VarInt;
+
+pub mod big_parse;
+use big_parse::*;
+
+#[tokio::main]
+async fn main() ->  Result<()> {
+
+    println!("Spooling Server...");
+
+    {
+        let host = "127.0.0.1";
+        let port: u16 = 25565;
+        let server = TcpListener::bind((host, port)).await.unwrap();
+
+        loop {
+
+            let (stream, addr) = server.accept().await.unwrap();
+
+            println!("new client connected");
+            let output = handle_connection(stream).await;
+        }
+    }
+
+
+    Ok(())
+
+}
 
 
 
 
-pub fn handle_connection( mut stream: TcpStream ) -> Result<()> {
-    let mut buf_reader = BufReader::new(&mut stream);
+
+async fn handle_connection( mut stream: TcpStream ) -> Result<()> {
+    stream.readable().await?;
 
     let mut data = Vec::new();
-    let _ = buf_reader.read_to_end(&mut data);
+    let mut buf = Vec::new();
+
+    match stream.try_read_buf( &mut buf) {
+        Ok(0) => {
+            println!("Connection Closed");
+            return Ok(());
+        }
+        Ok(n) => {
+            data.extend_from_slice(&buf[..n]);
+        }
+        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+            println!("Would Block");
+        }
+        Err(e) => {
+            println!("Failed to read from socket; err = {:?}", e);
+            return Err(e);
+        }
+    }
+    
+    
+
+
 
     let size = data.len();
     println!("Data Size: {}", size);
 
-    let (packet_length, packet_id, data) = (0, 0, vec![0]); // parse_length_pack_id(&data);
+
+    let (packet_length, packet_id, data) = parse_length_packid(data);
+
+
     println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id); 
     for item in data {
         println!("{:02X}", item);
     }
+
+    let responce = "ligma";
+    if packet_id == 0x00 {
+        let responce = "ligma";
+    }
+
     
+
     Ok(())
-    
 }
 
 #[cfg(test)]
