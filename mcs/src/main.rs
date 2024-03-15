@@ -7,8 +7,7 @@
         non_snake_case,
         )]
 use std::{
-    io::{ prelude::*, BufReader, Result, Error, ErrorKind},
-        collections::HashMap,
+    collections::HashMap, io::{ prelude::*, BufReader, Error, ErrorKind, Result}, net::SocketAddrV4
 };
 use tokio::net::{TcpListener, TcpStream};
 pub struct PackType {
@@ -34,6 +33,14 @@ use mc_datatypes::*;
 pub mod big_parse;
 use big_parse::*;
 
+#[derive(Debug, Copy, Clone)]
+enum State {
+    Handshake,
+    Status,
+    Login,
+    Play,
+}
+
 #[tokio::main]
 async fn main() ->  Result<()> {
 
@@ -43,26 +50,24 @@ async fn main() ->  Result<()> {
         let host = "127.0.0.1";
         let port: u16 = 25565;
         let server = TcpListener::bind((host, port)).await.unwrap();
+        
+        let mut state = State::Handshake;
 
         loop {
 
             let (stream, addr) = server.accept().await.unwrap();
 
             println!("new client connected");
-            let output = handle_connection(stream).await;
+            state = handle_connection( addr.to_string(), stream, state).await.unwrap();
         }
     }
-
-
     Ok(())
-
 }
 
 
-
-
-
-async fn handle_connection( mut stream: TcpStream ) -> Result<()> {
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<State> {
+    
+    
     stream.readable().await?;
 
     let mut data = Vec::new();
@@ -71,7 +76,7 @@ async fn handle_connection( mut stream: TcpStream ) -> Result<()> {
     match stream.try_read_buf( &mut buf) {
         Ok(0) => {
             println!("Connection Closed");
-            return Ok(());
+            return Ok(State::Handshake);
         }
         Ok(n) => {
             data.extend_from_slice(&buf[..n]);
@@ -85,30 +90,40 @@ async fn handle_connection( mut stream: TcpStream ) -> Result<()> {
         }
     }
     
-    
-
-
-
     let size = data.len();
     println!("Data Size: {}", size);
 
 
     let (packet_length, packet_id, data) = parse_length_packid(data);
 
+    match state {
+        State::Handshake => {
+            println!("initiating handshake with {addr}");
+            parse_handshake(packet_length, packet_id, data.clone());
+            println!("assuming request of state");
+            return Ok(State::Status);
+            
+
+        }
+        State::Status => {
+            println!("Status");
+
+        }
+        
+        _ => {
+            println!("Not Handshake");
+        }
+    }
+
 
     println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id); 
-    for item in data {
-        println!("{:02X}", item);
-    }
-
-    let responce = "ligma";
-    if packet_id == 0x00 {
-        let responce = "ligma";
-    }
+    //for item in data {
+    //    println!("{:02X}", item);
+    //}
 
     
 
-    Ok(())
+    Ok(State::Handshake)
 }
 
 #[cfg(test)]
