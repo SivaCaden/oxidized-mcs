@@ -25,15 +25,14 @@ pub fn craft_status_responce() -> Vec<u8> {
         }
     }
     "#;
-    let json_responce = StringMC::encode(json_responce.to_string());
-
 
     let mut responce: Vec<u8> = Vec::new();
     responce.push(STATUS_RESPONCE_PACKET_ID);
-    let lenght = json_responce.len() as i32;
-    VarInt::encode(lenght, &mut responce);
-    responce.extend_from_slice(&json_responce);
+    StringMC::encode(json_responce.to_string(), &mut responce);
+
     let lenght = responce.len() as i32;
+
+
     let mut out: Vec<u8> = Vec::new();
     VarInt::encode(lenght, &mut out);
     out.extend_from_slice(&responce);
