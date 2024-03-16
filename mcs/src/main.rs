@@ -52,7 +52,7 @@ async fn main() ->  Result<()> {
     println!("Spooling Server...");
 
     {
-        let host = "127.0.0.1";
+        let host = "192.168.1.200";
         let port: u16 = 25565;
         let addr = format!("{}:{}", host, port).to_string();
         let server = TcpListener::bind(addr).await?;
@@ -112,6 +112,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
     //for item in data.clone() {
     //    println!("{:08b}", item);
     //}
+    let meme = data.clone();
     let (packet_length, packet_id, data) = parse_length_packid(data);
     println!("Data Size: {}", size);
     println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
@@ -133,7 +134,43 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
 
                     return Ok(State::Status)
                 },
-                2 => return Ok(State::Login),
+                2 => {
+                    state = State::Login;
+                    println!("STATE: {:?}", state);
+
+                    println!("======================\n");
+                    let mut data = Vec::new();
+                    let mut buf = Vec::new();
+
+                    match stream.try_read_buf( &mut buf) {
+                        Ok(0) => {
+                            println!("Connection Closed");
+                            return Ok(State::Handshake);
+                        }
+                        Ok(n) => {
+                            data.extend_from_slice(&buf[..n]);
+                        }
+                        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                            println!("Would Block");
+                        }
+                        Err(e) => {
+                            println!("Failed to read from socket; err = {:?}", e);
+                            return Err(e);
+                        }
+                    }
+
+
+                    let size = data.len();
+                    println!("Data Size: {}", size);
+                    
+                    let (packet_length, packet_id, data) = parse_length_packid(data);
+                    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
+
+                    parse_login_start(packet_length, packet_id, data);
+
+
+
+                },
                 _ => return Ok(State::Handshake),
             }
         }
@@ -141,26 +178,8 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             println!("Status");
             let responce = craft_status_responce();
             
-            parse_mystery_packet(packet_length, packet_id, data);
+            parse_mystery_packet(meme);
 
-
-
-            match stream.try_write(&responce) {
-
-                Ok(n) => {
-                    println!("Wrote {} bytes", n);
-                }
-                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                    println!("Would Block");
-                }
-                Err(e) => {
-                    println!("Failed to write to socket; err = {:?}", e);
-                    return Err(e);
-                }
-
-            }
-            return Ok(State::Handshake);
-            
 
         }
         

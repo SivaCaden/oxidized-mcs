@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 crypto = "0.5.1"
+deflate = "1.0.0"
 etherparse = "0.14.2"
+flate2 = "1.0.28"
 log = "0.4.21"
 num-bigint = "0.4.4"
 regex = "1.10.3"

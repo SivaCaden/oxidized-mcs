@@ -1,9 +1,11 @@
+use std::io::Read;
+
 use crate::mc_datatypes::{
     VarInt,
     StringMC,
     UShort,
 };
-
+use deflate::deflate_bytes_zlib;
 pub fn parse<T>(data: &[u8]){
     let (packet_length, packet_id, data) = parse_length_packid(data.to_vec()); 
     match packet_id {
@@ -85,18 +87,29 @@ pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
 
 
 }
+pub fn parse_login_start(length: i32, id: i32, data: Vec<u8>) {
+    let (name, data) = StringMC::decode(data);
+    println!("Name: {}", name);
+}
 
-pub fn parse_mystery_packet(length: i32, id: i32, data: Vec<u8>) {
-    println!("Mystery Packet");
-    println!("Length: {}", length);
-    println!("ID: {}", id);
+pub fn parse_mystery_packet(data: Vec<u8>) {
+   
+    let (packet_length, data) = VarInt::decode(data);
+    println!("Packet Length: {}", packet_length);
+    let (data_length, fuck) = VarInt::decode(data);
+    println!("Data Length: {}", data_length);
+
+    let uncompressed_data = deflate_bytes_zlib(&fuck[..]); 
+
+
+    println!("attempting to decode the packet id...");
+    let (packet_id, uncompressed_data) = VarInt::decode(uncompressed_data);
+    println!("Packet ID: {:0X}", packet_id);
+    println!("attempting to decode the StringMC");
+    let (text, uncompressed_data) = StringMC::decode(uncompressed_data);
     
-    for item in data.clone() {
-       println!("{:08b}", item);
-    } 
-
-
-
+    
+    println!("Text: {}", text);
 
 
 

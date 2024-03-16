@@ -8,22 +8,25 @@ pub fn craft_status_responce() -> Vec<u8> {
     {
         "version": {
             "name": "1.20.4",
-            "protocol": 754
+            "protocol": 765
         },
         "players": {
-            "max": 42,
-            "online": 0,
+            "max": 100,
+            "online": 5,
             "sample": [
-                {
-                    "name": "thinkofdeath",
-                    "id": "4566e69f-c907-48ee-8d71-d7ba5aa00d20"
-                } 
+            {
+                "name": "thinkofdeath",
+                "id": "4566e69f-c907-48ee-8d71-d7ba5aa00d20"
+            }
             ]
         },
         "description": {
-            "text": "TO MANY CRABS IN THE BUCKET!"
-        }
-    }
+            "text": "Hello world"
+        },
+        "favicon": "data:image/png;base64,<data>",
+        "enforcesSecureChat": true,
+        "previewsChat": true
+    } 
     "#;
 
     let mut responce: Vec<u8> = Vec::new();
