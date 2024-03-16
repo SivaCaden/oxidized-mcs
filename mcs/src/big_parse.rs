@@ -47,7 +47,7 @@ pub struct Handshake {
 }
 
 
-pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>){
+pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
     let protocol_version: i32;
     let server_address: String;
     let server_port: u16;
@@ -57,11 +57,46 @@ pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>){
     let (protocol_version, data) = VarInt::decode(data);
     println!("Protocol Version: {}", protocol_version);
 
-    let (server_address, data) = StringMC::decode(data);
+    let (server_address, mut data) = StringMC::decode(data);
     println!("Server Address: {}", server_address);
+    // remove the first two bytes of the data vec 
+
+    let snip: Vec<u8> = data
+        .drain(0..2)
+        .collect();
+
+    let server_port: u16 = 25565;
+    println!("Server Port: {}", server_port);
+
+    let (next_state, data) = VarInt::decode(data);
+    match next_state {
+        1 => println!("Next State: Status"),
+        2 => println!("Next State: Login"),
+        _ => println!("Next State: Handshake"),
+    }
+
+    next_state as u32
+
 
 
     
+
+
+
+
+}
+
+pub fn parse_mystery_packet(length: i32, id: i32, data: Vec<u8>) {
+    println!("Mystery Packet");
+    println!("Length: {}", length);
+    println!("ID: {}", id);
+    
+    for item in data.clone() {
+       println!("{:08b}", item);
+    } 
+
+
+
 
 
 

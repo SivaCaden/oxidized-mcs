@@ -9,7 +9,7 @@
 use std::{
     collections::HashMap, io::{ prelude::*, BufReader, Error, ErrorKind, Result}, net::SocketAddrV4
 };
-use tokio::net::{TcpListener, TcpStream};
+use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 pub struct PackType {
     pub header: String,
     pub data_vec: Vec<String>,
@@ -33,6 +33,11 @@ use mc_datatypes::*;
 pub mod big_parse;
 use big_parse::*;
 
+pub mod packet_crafter;
+use packet_crafter::*;
+
+
+
 #[derive(Debug, Copy, Clone)]
 enum State {
     Handshake,
@@ -49,16 +54,23 @@ async fn main() ->  Result<()> {
     {
         let host = "127.0.0.1";
         let port: u16 = 25565;
-        let server = TcpListener::bind((host, port)).await.unwrap();
+        let addr = format!("{}:{}", host, port).to_string();
+        let server = TcpListener::bind(addr).await?;
         
         let mut state = State::Handshake;
+
 
         loop {
 
             let (stream, addr) = server.accept().await.unwrap();
 
-            println!("new client connected");
+            println!("\n=====================");
+            println!("client connected");
+            
+    
+
             state = handle_connection( addr.to_string(), stream, state).await.unwrap();
+
         }
     }
     Ok(())
@@ -67,6 +79,12 @@ async fn main() ->  Result<()> {
 
 async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<State> {
     
+
+    
+    
+    println!("STATE: {:?}", state);
+
+    println!("======================\n");
     
     stream.readable().await?;
 
@@ -91,22 +109,58 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
     }
     
     let size = data.len();
-    println!("Data Size: {}", size);
-
-
+    //for item in data.clone() {
+    //    println!("{:08b}", item);
+    //}
     let (packet_length, packet_id, data) = parse_length_packid(data);
+    println!("Data Size: {}", size);
+    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
+
+
+    // print all the data in 08b format
+
+
+    stream.writable().await?;
+
 
     match state {
         State::Handshake => {
             println!("initiating handshake with {addr}");
-            parse_handshake(packet_length, packet_id, data.clone());
-            println!("assuming request of state");
-            return Ok(State::Status);
-            
+            match parse_handshake(packet_length, packet_id, data.clone()) {
+                1 => {
 
+                    stream.flush().await?;
+
+                    return Ok(State::Status)
+                },
+                2 => return Ok(State::Login),
+                _ => return Ok(State::Handshake),
+            }
         }
         State::Status => {
             println!("Status");
+            let responce = craft_status_responce();
+            
+            parse_mystery_packet(packet_length, packet_id, data);
+
+
+
+            match stream.try_write(&responce) {
+
+                Ok(n) => {
+                    println!("Wrote {} bytes", n);
+                }
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                    println!("Would Block");
+                }
+                Err(e) => {
+                    println!("Failed to write to socket; err = {:?}", e);
+                    return Err(e);
+                }
+
+            }
+            return Ok(State::Handshake);
+            
 
         }
         
@@ -116,7 +170,6 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
     }
 
 
-    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id); 
     //for item in data {
     //    println!("{:02X}", item);
     //}
