@@ -269,3 +269,52 @@ impl VarInt {
 
 }
 
+// Position https://wiki.vg/Protocol#Type:Position  
+pub struct Position; 
+
+impl Position {
+    pub fn encode(position: (i32, i32, i32), packet: Vec<u8>) -> Vec<u8> { 
+        let (x, y, z) = (position.0 as u64, position.2 as u64, position.1 as u64);
+        let position: u64 = ((x & 0x3FFFFFF) << 38) | ((y & 0x3FFFFFF) << 12) | (z & 0xFFF);
+        let mut bytes = position.to_be_bytes().to_vec();
+        let mut out = packet.clone();
+        out.append(&mut bytes);
+        out
+    }
+
+    pub fn decode(packet: Vec<u8>) -> ((i64, i64, i64), Vec<u8>) { 
+        let (val, out) = Long::decode(packet); 
+        ( (val >> 38, val << 52 >> 52, val <<26 >> 38), out )
+    }
+}
+
+// UUID
+pub struct Uuid;
+
+impl Uuid {
+    pub fn encode(uuid: u128, packet: Vec<u8>) -> Vec<u8> { 
+        let mut out = packet.clone();
+        let uuid_bytes = uuid.to_be_bytes();
+        for byte in uuid_bytes { out.push(byte) }
+        out
+    }
+
+    pub fn decode(packet: Vec<u8>) -> (u128, Vec<u8>) {
+        let (msb, packet) = Long::decode(packet);
+        let (lsb, packet) = Long::decode(packet);
+
+        let mut zeros = 0_u64.to_ne_bytes().to_vec();
+        let mut msb = msb.to_be_bytes().to_vec();
+        let mut lsb = lsb.to_be_bytes().to_vec();
+
+        for byte in 0..msb.len() { msb.push(0) }
+        for byte in lsb { zeros.push(byte) }
+
+        let msb = u128::from_be_bytes(msb.try_into().unwrap());
+        let lsb = u128::from_be_bytes(zeros.try_into().unwrap());
+
+        let uuid = msb | lsb;
+
+        (uuid, packet)
+    }
+}

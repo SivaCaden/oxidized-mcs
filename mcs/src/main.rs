@@ -271,5 +271,76 @@ mod tests {
         assert_eq!(float, 6.9 as f32);
         assert_eq!(double, 6.9 as f64);
     }
+
+    #[test]
+    fn position() { 
+        // DECODE TEST
+        // (18357644, -20882616, 831)
+        let packet = vec![0x46, 0x07, 0x63, 0x2C, 0x15, 0xB4, 0x83, 0x3F];
+
+        let (position, packet) = Position::decode(packet);
+        assert_eq!(position, (18357644, 831, -20882616));
+
+        // ENCODE TEST
+        let position = (18357644, 831, -20882616);
+        let mut packet = vec![];
+
+        packet = Position::encode(position, packet);
+        assert_eq!(packet, vec![0x46, 0x07, 0x63, 0x2C, 0x15, 0xB4, 0x83, 0x3F]);
+    }
+
+    #[test]
+    fn uuid() {
+        // DECODE TEST -- using UUID for Sir_Goatsalot (me :))
+        let packet = vec![0x02, 0x75, 0x48, 0xC6, 
+                            0xB4, 0xD3, 0x44, 0xEF,
+                            0x8F, 0xDB, 0xC4, 0xAA,
+                            0x0A, 0xE3, 0x72, 0x67];
+        // Random UUID -- nice
+        let packet_2 = vec![0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69];
+
+        // UUID for AKA_den -- 37b2eb48109340d7872469e5e1ef9574
+        let packet_3 = vec![0x37, 0xB2, 0xEB, 0x48,
+                            0x10, 0x93, 0x40, 0xD7,
+                            0x87, 0x24, 0x69, 0xE5,
+                            0xE1, 0xEF, 0x95, 0x74];
+
+        let (uuid, packet) = Uuid::decode(packet);
+        let (uuid2, packet) = Uuid::decode(packet_2);
+        let (uuid3, packet) = Uuid::decode(packet_3);
+
+        assert_eq!(uuid, 0x027548c6b4d344ef8fdbc4aa0ae37267);
+        assert_eq!(uuid2, 0x69696969696969696969696969696969);
+        assert_eq!(uuid3, 0x37b2eb48109340d7872469e5e1ef9574);
+
+        // ENCODE TEST
+        let uuid: u128 = 0x027548c6b4d344ef8fdbc4aa0ae37267;
+        let uuid2: u128 = 0x69696969696969696969696969696969;
+        let uuid3: u128 = 0x37b2eb48109340d7872469e5e1ef9574;
+
+        // UUID for Sir_Goatsalot -- 0x027548c6b4d344ef8fdbc4aa0ae37267
+        let packet = vec![0x02, 0x75, 0x48, 0xC6, 
+                            0xB4, 0xD3, 0x44, 0xEF,
+                            0x8F, 0xDB, 0xC4, 0xAA,
+                            0x0A, 0xE3, 0x72, 0x67];
+        // Random UUID -- nice
+        let packet_2 = vec![0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69,
+                            0x69, 0x69, 0x69, 0x69];
+
+        // UUID for AKA_den -- 0x37b2eb48109340d7872469e5e1ef9574
+        let packet_3 = vec![0x37, 0xB2, 0xEB, 0x48,
+                            0x10, 0x93, 0x40, 0xD7,
+                            0x87, 0x24, 0x69, 0xE5,
+                            0xE1, 0xEF, 0x95, 0x74];
+
+        assert_eq!(packet, Uuid::encode(uuid, vec![]));
+        assert_eq!(packet_2, Uuid::encode(uuid2, vec![]));
+        assert_eq!(packet_3, Uuid::encode(uuid3, vec![]));
+    }
 }
 
