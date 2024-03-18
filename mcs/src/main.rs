@@ -10,22 +10,7 @@ use std::{
     collections::HashMap, io::{ prelude::*, BufReader, Error, ErrorKind, Result}, net::SocketAddrV4
 };
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
-pub struct PackType {
-    pub header: String,
-    pub data_vec: Vec<String>,
-}
 
-
-pub enum PacketType {
-    JoinGame (String, Vec<String>),
-    PluginMessage (String, Vec<String>),
-    ServerDifficutly (String, Vec<String>),
-    PlayerAbilitys (String, Vec<String>),
-    PlayerPositionAndLook (String, Vec<String>),
-    KeepAlive (String, Vec<String>),
-    TimeAlive (String, Vec<String>),
-    ChatMessage (String, Vec<String>), 
-}
 
 pub mod mc_datatypes;
 use mc_datatypes::*;
@@ -35,7 +20,6 @@ use big_parse::*;
 
 pub mod packet_crafter;
 use packet_crafter::*;
-
 
 
 #[derive(Debug, Copy, Clone)]
@@ -76,25 +60,14 @@ async fn main() ->  Result<()> {
     Ok(())
 }
 
+// reads a stream from a client to a Result Vec<u8>
 
-async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<State> {
-    
-
-    
-    
-    println!("STATE: {:?}", state);
-
-    println!("======================\n");
-    
-    stream.readable().await?;
-
+fn read_data(stream: &mut TcpStream) -> Result<Vec<u8>> {
     let mut data = Vec::new();
     let mut buf = Vec::new();
-
     match stream.try_read_buf( &mut buf) {
         Ok(0) => {
             println!("Connection Closed");
-            return Ok(State::Handshake);
         }
         Ok(n) => {
             data.extend_from_slice(&buf[..n]);
@@ -107,22 +80,30 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             return Err(e);
         }
     }
+    Ok(data)
+}
+
+
+
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<State> {
+   
+    
+    println!("STATE: {:?}", state);
+
+    println!("======================\n");
+    
+    stream.readable().await?;
+
+    let mut data: Vec<u8> = read_data(&mut stream).unwrap();
     
     let size = data.len();
-    //for item in data.clone() {
-    //    println!("{:08b}", item);
-    //}
     let meme = data.clone();
     let (packet_length, packet_id, data) = parse_length_packid(data);
+    
     println!("Data Size: {}", size);
     println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
 
-
-    // print all the data in 08b format
-
-
     stream.writable().await?;
-
 
     match state {
         State::Handshake => {
@@ -135,30 +116,13 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     return Ok(State::Status)
                 },
                 2 => {
+                    stream.flush().await?;
                     state = State::Login;
                     println!("STATE: {:?}", state);
 
                     println!("======================\n");
-                    let mut data = Vec::new();
-                    let mut buf = Vec::new();
-
-                    match stream.try_read_buf( &mut buf) {
-                        Ok(0) => {
-                            println!("Connection Closed");
-                            return Ok(State::Handshake);
-                        }
-                        Ok(n) => {
-                            data.extend_from_slice(&buf[..n]);
-                        }
-                        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                            println!("Would Block");
-                        }
-                        Err(e) => {
-                            println!("Failed to read from socket; err = {:?}", e);
-                            return Err(e);
-                        }
-                    }
-
+           
+                    let mut data = read_data(&mut stream).unwrap();
 
                     let size = data.len();
                     println!("Data Size: {}", size);
