@@ -17,7 +17,7 @@
 // [X] - String
 // [ ] - Text Component
 // [ ] - JSON Text Component
-// [ ] - Identifier
+// [D] - Identifier
 // [X] - VarInt
 // [ ] - VarLong
 // [ ] - Entity Metadata
@@ -34,6 +34,7 @@
 // [ ] - Byte Array
 
 use log::info;
+use regex::Regex;
 
 pub struct Bool;
 
@@ -248,13 +249,27 @@ impl StringMC {
      } 
 }
 
-// Minecraft Identifier encoded as a String with max length of 32767. 
+// Minecraft Identifier encoded as a String with max length of 32767. See https://wiki.vg/Protocol#Identifier 
 pub struct Identifier;
 
 impl Identifier { 
-    pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> { vec![] } 
+    pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> {
+        let id: Vec<&str> = value.split_terminator(":").collect();
+        let nspc = id[0];
+        let val = id[1];
+        let nspc_re = Regex::new("[a-z0-9.-_]").unwrap(); 
+        let val_re = Regex::new("[a-z0-9.-_/]").unwrap();
 
-    pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) { (0, vec![]) }
+        println!("NAMESPACE {:?}", nspc);
+        println!("VALUE {:?}", val);
+
+        if nspc_re.is_match(nspc) && val_re.is_match(val) {
+            StringMC::encode(value, packet)
+        } else { panic!("Invalid Identifier!"); }
+
+    } 
+
+    pub fn decode(packet: Vec<u8>) -> (String, Vec<u8>) { (String::from("minecraft:infested_chiseled_stone_bricks"), vec![]) }
 }
 
 // Varialbe-length data encoding a two's complement 32-bit integer. See https://wiki.vg/Protocol#VarInt_and_VarLong

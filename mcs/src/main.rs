@@ -167,69 +167,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn varint() {
-        // DECODE TESTS
-        let mut packet = vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07,// Max Value of VarInt 2147483647
-                            0xDD, 0xC7, 0x01,              // 25565, default port
-                            0x01,                          // 1
-                            0x80, 0x80, 0x80, 0x80, 0x08,  // Min Value of VarInt -2147483648
-                            0x69, 0x69];                   // Other data at end of packet
-        let (num1, packet) = VarInt::decode(packet); 
-        let (num2, packet) = VarInt::decode(packet);
-        let (num3, packet) = VarInt::decode(packet);
-        let (num4, packet) = VarInt::decode(packet);
-
-        assert_eq!(num1, 2147483647);
-        assert_eq!(num2, 25565);
-        assert_eq!(num3, 1);
-        assert_eq!(num4, -2147483648);
-        assert_eq!(packet, vec![0x69, 0x69]);
-
-        // ENCODE TESTS
-        let num1: i32 = 2147483647;
-        let num2: i32 = 25565;
-        let num3: i32 = 1;
-        let num4: i32 = -2147483648;
-        
-        let out = VarInt::encode(num1, vec![]);
-        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07], out);
-        let out = VarInt::encode(num2, out);
-        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01], out);
-        let out = VarInt::encode(num3, out);
-        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01], out);
-        let out = VarInt::encode(num4, out);
-        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01, 0x80, 0x80, 0x80, 0x80, 0x08], out);
-    }
-
-    #[test]
-    fn string_mc() {
-        // DECODE TEST
-        let packet = vec![0x28,                                          // VarInt length
-                        0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
-                        0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
-                        0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
-                        0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
-                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e,  // To be or not to be, That is the question
-                        0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]; // Misc. other data
-
-       let (string, packet) = StringMC::decode(packet);
-       assert_eq!(string, String::from("To be or not to be, That is the question"));
-       assert_eq!(packet, vec![0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]);
-
-       // ENCODE TEST
-       let packet = vec![0x28,                                           // VarInt length
-                        0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
-                        0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
-                        0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
-                        0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
-                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e]; // To be or not to be,
-                                                                         // That is the question
-       let string = String::from("To be or not to be, That is the question"); 
-       let out = StringMC::encode(string, vec![]);
-       assert_eq!(packet, out); 
-    }
-
-    #[test]
     fn bool_thru_double() {
         // DECODE TEST
         let packet = vec![0x01, 0x00,               // Bool true, false
@@ -268,6 +205,126 @@ mod tests {
         assert_eq!(double, 6.9 as f64);
     }
 
+
+    #[test]
+    fn varint() {
+        // DECODE TESTS
+        let mut packet = vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07,// Max Value of VarInt 2147483647
+                            0xDD, 0xC7, 0x01,              // 25565, default port
+                            0x01,                          // 1
+                            0x80, 0x80, 0x80, 0x80, 0x08,  // Min Value of VarInt -2147483648
+                            0x69, 0x69];                   // Other data at end of packet
+        let (num1, packet) = VarInt::decode(packet); 
+        let (num2, packet) = VarInt::decode(packet);
+        let (num3, packet) = VarInt::decode(packet);
+        let (num4, packet) = VarInt::decode(packet);
+
+        assert_eq!(num1, 2147483647);
+        assert_eq!(num2, 25565);
+        assert_eq!(num3, 1);
+        assert_eq!(num4, -2147483648);
+        assert_eq!(packet, vec![0x69, 0x69]);
+
+        // ENCODE TESTS
+        let num1: i32 = 2147483647;
+        let num2: i32 = 25565;
+        let num3: i32 = 1;
+        let num4: i32 = -2147483648;
+        
+        let out = VarInt::encode(num1, vec![]);
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07], out);
+        let out = VarInt::encode(num2, out);
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01], out);
+        let out = VarInt::encode(num3, out);
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01], out);
+        let out = VarInt::encode(num4, out);
+        assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01, 0x80, 0x80, 0x80, 0x80, 0x08], out);
+
+    }
+
+    #[test]
+    fn string_mc() {
+        // DECODE TEST
+        let packet = vec![0x28,                                          // VarInt length
+                        0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
+                        0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
+                        0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
+                        0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
+                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e,  // To be or not to be, That is the question
+                        0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]; // Misc. other data
+
+       let (string, packet) = StringMC::decode(packet);
+       assert_eq!(string, String::from("To be or not to be, That is the question"));
+       assert_eq!(packet, vec![0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]);
+
+       // ENCODE TEST
+       let packet = vec![0x28,                                           // VarInt length
+                        0x54, 0x6f, 0x20, 0x62, 0x65, 0x20, 0x6f, 0x72, 
+                        0x20, 0x6e, 0x6f, 0x74, 0x20, 0x74, 0x6f, 0x20,
+                        0x62, 0x65, 0x2c, 0x20, 0x54, 0x68, 0x61, 0x74,
+                        0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
+                        0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e]; // To be or not to be,
+                                                                         // That is the question
+       let string = String::from("To be or not to be, That is the question"); 
+       let out = StringMC::encode(string, vec![]);
+       assert_eq!(packet, out); 
+    }
+
+    #[test]
+    fn identifier() {
+        // DECODE TEST
+        let packet = vec![0x28, 0x6D, 0x69, 0x6E, // minecraft:infested_chiseled_stone_bricks 
+                    0x65, 0x63, 0x72, 0x61, 
+                    0x66, 0x74, 0x3A, 0x69,
+                    0x6E, 0x66, 0x65, 0x73,
+                    0x74, 0x65, 0x64, 0x5F,
+                    0x63, 0x68, 0x69, 0x73,
+                    0x65, 0x6C, 0x65, 0x64,
+                    0x5F, 0x73, 0x74, 0x6F,
+                    0x6E, 0x65, 0x5F, 0x62,
+                    0x72, 0x69, 0x63, 0x6B, 
+                    0x73];
+
+        let (identifier, _) = Identifier::decode(packet);
+
+        assert_eq!(identifier, String::from("minecraft:infested_chiseled_stone_bricks"));
+
+        // ENCODE TEST
+        let identifier = String::from("minecraft:infested_chiseled_stone_bricks");
+        let test_packet = vec![0x28, 0x6D, 0x69, 0x6E, // minecraft:infested_chiseled_stone_bricks 
+                    0x65, 0x63, 0x72, 0x61, 
+                    0x66, 0x74, 0x3A, 0x69,
+                    0x6E, 0x66, 0x65, 0x73,
+                    0x74, 0x65, 0x64, 0x5F,
+                    0x63, 0x68, 0x69, 0x73,
+                    0x65, 0x6C, 0x65, 0x64,
+                    0x5F, 0x73, 0x74, 0x6F,
+                    0x6E, 0x65, 0x5F, 0x62,
+                    0x72, 0x69, 0x63, 0x6B, 
+                    0x73];
+
+        assert_eq!(test_packet, Identifier::encode(identifier, vec![]));
+    }
+
+    #[test]
+    #[should_panic]
+    fn identifier_panic() {
+        // BAD ENCODE TEST
+        let bad_packet = vec![0x28, 0x6D, 0x69, 0x6E, // minecraft:infested_chiseled_stone_bricks 
+                    0x65, 0x3F, 0x72, 0x61, 
+                    0x66, 0x74, 0x3A, 0x69,
+                    0x6E, 0x66, 0x65, 0x73,
+                    0x74, 0x65, 0x64, 0x5F,
+                    0x63, 0x68, 0x69, 0x73,
+                    0x65, 0x6C, 0x65, 0x64,
+                    0x5F, 0x73, 0x74, 0x6F,
+                    0x6E, 0x65, 0x5F, 0x62,
+                    0x72, 0x69, 0x63, 0x6B, 
+                    0x73];
+
+        let (id, packet) = Identifier::decode(bad_packet);
+    }
+
     #[test]
     fn position() { 
         // DECODE TEST
@@ -284,6 +341,8 @@ mod tests {
         packet = Position::encode(position, packet);
         assert_eq!(packet, vec![0x46, 0x07, 0x63, 0x2C, 0x15, 0xB4, 0x83, 0x3F]);
     }
+
+
 
     #[test]
     fn uuid() {
