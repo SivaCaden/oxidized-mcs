@@ -1,2 +1,2 @@
 mcs/target/*
-*.lock
+**/Cargo.lock
