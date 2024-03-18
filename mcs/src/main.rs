@@ -191,17 +191,14 @@ mod tests {
         let num3: i32 = 1;
         let num4: i32 = -2147483648;
         
-        let mut out: Vec<u8> = vec![];
-
-        VarInt::encode(num1, &mut out);
+        let out = VarInt::encode(num1, vec![]);
         assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07], out);
-        VarInt::encode(num2, &mut out);
+        let out = VarInt::encode(num2, out);
         assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01], out);
-        VarInt::encode(num3, &mut out);
+        let out = VarInt::encode(num3, out);
         assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01], out);
-        VarInt::encode(num4, &mut out);
+        let out = VarInt::encode(num4, out);
         assert_eq!(vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0xDD, 0xC7, 0x01, 0x01, 0x80, 0x80, 0x80, 0x80, 0x08], out);
-
     }
 
     #[test]
@@ -228,8 +225,7 @@ mod tests {
                         0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e]; // To be or not to be,
                                                                          // That is the question
        let string = String::from("To be or not to be, That is the question"); 
-       let mut out = vec![];
-       StringMC::encode(string,&mut out);
+       let out = StringMC::encode(string, vec![]);
        assert_eq!(packet, out); 
     }
 
@@ -342,5 +338,6 @@ mod tests {
         assert_eq!(packet_2, Uuid::encode(uuid2, vec![]));
         assert_eq!(packet_3, Uuid::encode(uuid3, vec![]));
     }
+
 }
 

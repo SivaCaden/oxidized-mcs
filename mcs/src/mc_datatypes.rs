@@ -225,15 +225,14 @@ impl Double {
 pub struct StringMC; 
 
 impl StringMC {
-    pub fn encode(value: String, packet: &mut Vec<u8>) { 
+    pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> { 
         // Step 1: Convert length of String into VarInt and make that the first thing
-        let mut bytes_out: Vec<u8> = vec![];
-        VarInt::encode(value.len() as i32, &mut bytes_out); 
+        let mut out = VarInt::encode(value.len() as i32, vec![]); 
 
         // Step 2: Append utf-8 bytes to out bytes
         let string_bytes = value.into_bytes();
-        for byte in string_bytes { bytes_out.push(byte) }
-        for byte in bytes_out { packet.push(byte) }
+        for byte in string_bytes { out.push(byte) }
+        out
     }
 
     pub fn decode(data: Vec<u8>) -> ( String, Vec<u8> ) {
@@ -249,11 +248,20 @@ impl StringMC {
      } 
 }
 
+// Minecraft Identifier encoded as a String with max length of 32767. 
+pub struct Identifier;
+
+impl Identifier { 
+    pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> { vec![] } 
+
+    pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) { (0, vec![]) }
+}
+
 // Varialbe-length data encoding a two's complement 32-bit integer. See https://wiki.vg/Protocol#VarInt_and_VarLong
 pub struct VarInt; 
 
 impl VarInt {
-    pub fn encode(value: i32, packet: &mut Vec<u8>) {
+    pub fn encode(value: i32, packet: Vec<u8>) -> Vec<u8> {
         // Step 1: Split value into bytes & append continue bits to the front
         let segment_bits = 0b01111111;
         let continue_bit = 0b10000000;
@@ -272,7 +280,9 @@ impl VarInt {
         } 
         
         // Step 2: Add those bytes to the end of the packet 
-        for byte in out_bytes { packet.push(byte) }
+        let mut out_packet = packet.clone();
+        for byte in out_bytes { out_packet.push(byte) }
+        out_packet
     } 
 
     pub fn decode(packet: Vec<u8>) -> (i32, Vec<u8>) {

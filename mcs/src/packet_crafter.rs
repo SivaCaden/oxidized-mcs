@@ -31,13 +31,13 @@ pub fn craft_status_responce() -> Vec<u8> {
 
     let mut responce: Vec<u8> = Vec::new();
     responce.push(STATUS_RESPONCE_PACKET_ID);
-    StringMC::encode(json_responce.to_string(), &mut responce);
+    responce = StringMC::encode(json_responce.to_string(), responce);
 
     let lenght = responce.len() as i32;
 
 
     let mut out: Vec<u8> = Vec::new();
-    VarInt::encode(lenght, &mut out);
+    out = VarInt::encode(lenght, out);
     out.extend_from_slice(&responce);
     out
 }
