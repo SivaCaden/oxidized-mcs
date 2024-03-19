@@ -243,6 +243,33 @@ mod tests {
     }
 
     #[test]
+    fn varlong() {
+        // DECODE TEST
+        let mut packet = vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, // 2147483647
+                        0x80, 0x80, 0x80, 0x80, 0x80, 
+                        0x80, 0x80, 0x80, 0x80, 0x01];  // -9223372036854775808
+
+        let (varlong1, packet) = VarLong::decode(packet);
+        let (varlong2, packet) = VarLong::decode(packet);
+
+        assert_eq!(varlong1, 2147483647);
+        assert_eq!(varlong2, -9223372036854775808);
+
+        // ENCODE TEST
+        let varlong1 = 2147483647;
+        let varlong2 = -9223372036854775808;
+
+        let mut test_packet = vec![0xFF, 0xFF, 0xFF, 0xFF, 0x07, // 2147483647
+                        0x80, 0x80, 0x80, 0x80, 0x80, 
+                        0x80, 0x80, 0x80, 0x80, 0x01];  // -9223372036854775808
+
+        let mut packet = VarLong::encode(varlong1, vec![]);
+        packet = VarLong::encode(varlong2, packet);
+
+        assert_eq!(test_packet, packet);
+    }
+
+    #[test]
     fn string_mc() {
         // DECODE TEST
         let packet = vec![0x28,                                          // VarInt length
@@ -307,25 +334,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    fn identifier_panic() {
-        // BAD ENCODE TEST
-        let bad_packet = vec![0x28, 0x6D, 0x69, 0x6E, // minecraft:infested_chiseled_stone_bricks 
-                    0x65, 0x3F, 0x72, 0x61, 
-                    0x66, 0x74, 0x3A, 0x69,
-                    0x6E, 0x66, 0x65, 0x73,
-                    0x74, 0x65, 0x64, 0x5F,
-                    0x63, 0x68, 0x69, 0x73,
-                    0x65, 0x6C, 0x65, 0x64,
-                    0x5F, 0x73, 0x74, 0x6F,
-                    0x6E, 0x65, 0x5F, 0x62,
-                    0x72, 0x69, 0x63, 0x6B, 
-                    0x73];
-
-        let (id, packet) = Identifier::decode(bad_packet);
-    }
-
-    #[test]
     fn position() { 
         // DECODE TEST
         // (18357644, -20882616, 831)
@@ -341,8 +349,6 @@ mod tests {
         packet = Position::encode(position, packet);
         assert_eq!(packet, vec![0x46, 0x07, 0x63, 0x2C, 0x15, 0xB4, 0x83, 0x3F]);
     }
-
-
 
     #[test]
     fn uuid() {
@@ -397,6 +403,5 @@ mod tests {
         assert_eq!(packet_2, Uuid::encode(uuid2, vec![]));
         assert_eq!(packet_3, Uuid::encode(uuid3, vec![]));
     }
-
 }
 

@@ -17,9 +17,9 @@
 // [X] - String
 // [ ] - Text Component
 // [ ] - JSON Text Component
-// [D] - Identifier
+// [X] - Identifier
 // [X] - VarInt
-// [ ] - VarLong
+// [D] - VarLong
 // [ ] - Entity Metadata
 // [ ] - Slot
 // [ ] - NBT
@@ -254,22 +254,40 @@ pub struct Identifier;
 
 impl Identifier { 
     pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> {
-        let id: Vec<&str> = value.split_terminator(":").collect();
-        let nspc = id[0];
-        let val = id[1];
-        let nspc_re = Regex::new("[a-z0-9.-_]").unwrap(); 
-        let val_re = Regex::new("[a-z0-9.-_/]").unwrap();
-
-        println!("NAMESPACE {:?}", nspc);
-        println!("VALUE {:?}", val);
-
-        if nspc_re.is_match(nspc) && val_re.is_match(val) {
-            StringMC::encode(value, packet)
-        } else { panic!("Invalid Identifier!"); }
-
+        if Identifier::is_valid(&value) { 
+            StringMC::encode(value, packet) 
+        } else { panic!("Invalid Identifier: {:?}, cannot encode", value) }
     } 
 
-    pub fn decode(packet: Vec<u8>) -> (String, Vec<u8>) { (String::from("minecraft:infested_chiseled_stone_bricks"), vec![]) }
+    pub fn decode(packet: Vec<u8>) -> (String, Vec<u8>) { 
+        let (id, out) = StringMC::decode(packet);
+        if Identifier::is_valid(&id) { (id, out) }
+        else { panic!("Invalid Identifier: {:?}, cannot decode", id) }
+    }
+    
+    fn is_valid(id: &String) -> bool {
+        let id: Vec<&str> = id.split(":").collect();
+
+        let re_namespace = Regex::new("[a-z0-9.-_]").unwrap();
+        let re_value = Regex::new("[a-z0-9.-_/]").unwrap();
+
+        let mut valid_namespace = true;
+        let mut valid_value = true;
+
+        for character in id[0].split_terminator("").skip(1) {
+            if !re_namespace.is_match(character) { 
+                valid_namespace = false; 
+                break;
+            } 
+        }
+        for character in id[0].split_terminator("").skip(1) { 
+            if !re_value.is_match(character) { 
+                valid_value = false;
+                break;
+            } 
+        }
+        valid_namespace && valid_value
+    }
 }
 
 // Varialbe-length data encoding a two's complement 32-bit integer. See https://wiki.vg/Protocol#VarInt_and_VarLong
@@ -326,6 +344,56 @@ impl VarInt {
 }
 
 // Variable-length data encoding a two's complement signed 64-bit integer
+pub struct VarLong;
+
+impl VarLong {
+    pub fn encode(value: i64, packet: Vec<u8>) -> Vec<u8> { 
+        // Step 1: Split value into bytes & append continue bits to the front
+        let segment_bits = 0b01111111;
+        let continue_bit = 0b10000000;
+
+        let mut raw_bytes = value.to_be_bytes();
+        let mut raw_value: u64 = u64::from_be_bytes(raw_bytes);
+        let mut out_bytes: Vec<u8> = vec![];
+
+        loop { 
+            if (raw_value & !segment_bits) == 0 { 
+                out_bytes.push(raw_value.try_into().unwrap());
+                break;
+            }
+            out_bytes.push( ((raw_value & segment_bits) | continue_bit).try_into().unwrap() );
+            raw_value = raw_value >> 7;
+        } 
+        
+        // Step 2: Add those bytes to the end of the packet 
+        let mut out_packet = packet.clone();
+        for byte in out_bytes { out_packet.push(byte) }
+        out_packet
+    }
+
+    pub fn decode(packet: Vec<u8>) -> (i64, Vec<u8>) { 
+        // Step 1: Separate which bytes are in the varint
+        let signal_bit = 0b10000000; 
+        let mut packet_out = packet.clone();
+        let mut buf: Vec<u8> = vec![];
+        for byte in packet { 
+            buf.push(byte);
+            packet_out.remove(0);
+            if (byte & signal_bit) != signal_bit { break } // END OF NUMBER 
+        }
+
+        // Step 2: Decode the VarInt from the buffer
+        let data_bits = 0b01111111;
+        let mut value: i64 = 0;
+        let mut position = 0;
+        for byte in buf {
+            value |= ((byte & data_bits) as i64) << position;
+            position += 7;
+        }
+
+        (value, packet_out)
+    }
+}
 
 // Position https://wiki.vg/Protocol#Type:Position  
 pub struct Position; 
