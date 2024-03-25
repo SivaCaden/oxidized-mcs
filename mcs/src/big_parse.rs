@@ -5,18 +5,10 @@ use crate::mc_datatypes::{
     StringMC,
     UShort,
 };
-use deflate::deflate_bytes_zlib;
-pub fn parse<T>(data: &[u8]){
-    let (packet_length, packet_id, data) = parse_length_packid(data.to_vec()); 
-    match packet_id {
-        _ => {
-            println!("Packet ID: {}", packet_id);
-            parse_handshake(packet_length, packet_id, data.to_vec());
-        }
-    }
-}
 
-pub fn parse_length_packid(data: Vec<u8>) -> (i32, i32, Vec<u8>) {
+use crate::Packet;
+
+pub fn make_packet(data: Vec<u8>) -> Packet {
     let data = data;
     let (packet_length, data) = VarInt::decode(data);
     let (packet_id, data) = match packet_length {
@@ -27,27 +19,8 @@ pub fn parse_length_packid(data: Vec<u8>) -> (i32, i32, Vec<u8>) {
             VarInt::decode(data)
         }
     };
-    (packet_length, packet_id, data)
+    Packet::new(packet_length as i32, packet_id as i32, data)
 }
-
-
-
-pub struct Data<T> {
-    pub packet_length: u32,
-    pub packet_id: u32,
-    pub data: T,
-}
-
-
-pub struct Handshake {
-    pub packet_length: u32,
-    pub packet_id: u32,
-    pub protocol_version: u32,
-    pub server_address: String,
-    pub server_port: u16,
-    pub next_state: u32,
-}
-
 
 pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
     let protocol_version: i32;
@@ -78,42 +51,10 @@ pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
     }
 
     next_state as u32
-
-
-
-    
-
-
-
-
 }
 pub fn parse_login_start(length: i32, id: i32, data: Vec<u8>) {
     let (name, data) = StringMC::decode(data);
     println!("Name: {}", name);
-}
-
-pub fn parse_mystery_packet(data: Vec<u8>) {
-   
-    let (packet_length, data) = VarInt::decode(data);
-    println!("Packet Length: {}", packet_length);
-    let (data_length, fuck) = VarInt::decode(data);
-    println!("Data Length: {}", data_length);
-
-    let uncompressed_data = deflate_bytes_zlib(&fuck[..]); 
-
-
-    println!("attempting to decode the packet id...");
-    let (packet_id, uncompressed_data) = VarInt::decode(uncompressed_data);
-    println!("Packet ID: {:0X}", packet_id);
-    println!("attempting to decode the StringMC");
-    let (text, uncompressed_data) = StringMC::decode(uncompressed_data);
-    
-    
-    println!("Text: {}", text);
-
-
-
-
 }
 
 
