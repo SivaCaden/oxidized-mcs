@@ -228,7 +228,7 @@ pub struct StringMC;
 impl StringMC {
     pub fn encode(value: String, packet: Vec<u8>) -> Vec<u8> { 
         // Step 1: Convert length of String into VarInt and make that the first thing
-        let mut out = VarInt::encode(value.len() as i32, vec![]); 
+        let mut out = VarInt::encode(value.len() as i32, packet.clone()); 
 
         // Step 2: Append utf-8 bytes to out bytes
         let string_bytes = value.into_bytes();
