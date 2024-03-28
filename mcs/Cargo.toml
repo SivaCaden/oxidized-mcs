@@ -6,12 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-crypto = "0.5.1"
 deflate = "1.0.0"
-etherparse = "0.14.2"
+der = "0.7.8"
 flate2 = "1.0.28"
-log = "0.4.21"
 num-bigint = "0.4.4"
+rand = "0.8.5"
 regex = "1.10.3"
+rsa = "0.9.6"
 rustc-serialize = "0.3.25"
 tokio = {version ="1", features = ["full"]}

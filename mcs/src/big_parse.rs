@@ -4,6 +4,7 @@ use crate::mc_datatypes::{
     VarInt,
     StringMC,
     UShort,
+    Identifier,
 };
 
 use crate::Packet;
@@ -52,9 +53,10 @@ pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
 
     next_state as u32
 }
-pub fn parse_login_start(length: i32, id: i32, data: Vec<u8>) {
+pub fn parse_login_start(data: Vec<u8>) -> (String, String) {
     let (name, data) = StringMC::decode(data);
-    println!("Name: {}", name);
+    let (uuid, data) = Identifier::decode(data);
+    (name, uuid)
 }
 
 

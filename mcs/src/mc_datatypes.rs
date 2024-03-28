@@ -33,7 +33,6 @@
 // [ ] - X Enum
 // [ ] - Byte Array
 
-use log::info;
 use regex::Regex;
 
 pub struct Bool;
