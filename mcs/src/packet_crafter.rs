@@ -11,8 +11,8 @@ pub fn craft_status_responce() -> Vec<u8> {
             "protocol": 765
         },
         "players": {
-            "max": 100,
-            "online": 5,
+            "max": 69,
+            "online": 420,
             "sample": [
             {
                 "name": "thinkofdeath",
@@ -21,7 +21,7 @@ pub fn craft_status_responce() -> Vec<u8> {
             ]
         },
         "description": {
-            "text": "dev test server :: ballz"
+            "text": "C O R N E D B E E F H A S H W R A P"
         },
         "favicon": "data:image/png;base64,<data>",
         "enforcesSecureChat": true,

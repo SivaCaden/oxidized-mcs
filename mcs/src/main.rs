@@ -107,7 +107,6 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         println!("attempting to read from stream");
         stream.readable().await?;
         let mut raw_data = Vec::new();
-        stream.set_linger(None)?;
         match stream.try_read_buf( &mut buf) {
             Ok(0) => {
                 println!("Connection Closed");
@@ -117,6 +116,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
                 panic!("Would Block");
+                state = State::Handshake;
             }
             Err(e) => {
                 println!("Failed to read from socket; err = {:?}", e);
@@ -150,6 +150,9 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     },
                     2 => {
                         state = State::Login;
+                        stream.writable().await?;
+                        stream.flush().await?;
+
                     },
                     _ => {
                         println!("Handshake Failed");
@@ -163,9 +166,9 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     0 => {
                         println!("Request");
                         let responce = craft_status_responce();
+                        
                         stream.writable().await?;
                         stream.flush().await?;
-                        stream.writable().await?;
                         stream.write_all(&responce).await?;
                         stream.writable().await?;
                         stream.flush().await?;
