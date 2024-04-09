@@ -11,8 +11,8 @@ pub fn craft_status_responce() -> Vec<u8> {
             "protocol": 765
         },
         "players": {
-            "max": 100,
-            "online": 5,
+            "max": 69,
+            "online": 420,
             "sample": [
             {
                 "name": "thinkofdeath",
@@ -21,7 +21,7 @@ pub fn craft_status_responce() -> Vec<u8> {
             ]
         },
         "description": {
-            "text": "Hello world"
+            "text": "C O R N E D B E E F H A S H W R A P"
         },
         "favicon": "data:image/png;base64,<data>",
         "enforcesSecureChat": true,
@@ -30,17 +30,13 @@ pub fn craft_status_responce() -> Vec<u8> {
     "#;
 
     let mut responce: Vec<u8> = Vec::new();
-    responce.push(STATUS_RESPONCE_PACKET_ID);
+    responce = VarInt::encode(STATUS_RESPONCE_PACKET_ID as i32, responce);
     responce = StringMC::encode(json_responce.to_string(), responce);
-
     let lenght = responce.len() as i32;
-
-
     let mut out: Vec<u8> = Vec::new();
     out = VarInt::encode(lenght, out);
     out.extend_from_slice(&responce);
     out
 }
-
 
 

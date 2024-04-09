@@ -7,9 +7,19 @@
         non_snake_case,
         )]
 use std::{
-    collections::HashMap, io::{ prelude::*, BufReader, Error, ErrorKind, Result}, net::SocketAddrV4
+    collections::HashMap, 
+    time::Duration,
+    io::{
+        prelude::*, 
+        Error, 
+        ErrorKind, 
+        Result
+    }, 
+    net::SocketAddrV4
 };
-use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
+use tokio::{io::{AsyncWriteExt, AsyncReadExt, BufReader}, net::{TcpListener, TcpStream}};
+use rand::thread_rng;
+use rsa::{RsaPrivateKey, RsaPublicKey};
 
 
 pub mod mc_datatypes;
@@ -30,19 +40,26 @@ enum State {
     Play,
 }
 
+const HOST: &str = "127.0.0.1";
+const PORT: u16 = 25565;
+
 #[tokio::main]
 async fn main() ->  Result<()> {
 
     println!("Spooling Server...");
+    println!("Generating Keys...");
+    // ok I know this is not the secure way of generating and storing
+    // criptographic keys but I just want this to work ok?
+
 
     {
-        let host = "192.168.1.200";
+        let host = "127.0.0.1";
         let port: u16 = 25565;
         let addr = format!("{}:{}", host, port).to_string();
-        let server = TcpListener::bind(addr).await?;
         
         let mut state = State::Handshake;
 
+        let server = TcpListener::bind(addr).await.unwrap();
 
         loop {
 
@@ -51,115 +68,152 @@ async fn main() ->  Result<()> {
             println!("\n=====================");
             println!("client connected");
             
-    
-
-            state = handle_connection( addr.to_string(), stream, state).await.unwrap();
+            tokio::spawn(async move {
+                let _ = handle_connection( addr.to_string(), stream, state).await.unwrap();
+            });
 
         }
     }
     Ok(())
 }
-
-// reads a stream from a client to a Result Vec<u8>
-
-fn read_data(stream: &mut TcpStream) -> Result<Vec<u8>> {
-    let mut data = Vec::new();
-    let mut buf = Vec::new();
-    match stream.try_read_buf( &mut buf) {
-        Ok(0) => {
-            println!("Connection Closed");
-        }
-        Ok(n) => {
-            data.extend_from_slice(&buf[..n]);
-        }
-        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-            println!("Would Block");
-        }
-        Err(e) => {
-            println!("Failed to read from socket; err = {:?}", e);
-            return Err(e);
+pub struct Packet {
+    length: i32,
+    id: i32,
+    data: Vec<u8>,
+}
+impl Packet {
+    pub fn new(length: i32, id: i32, data: Vec<u8>) -> Self {
+        Packet {
+            length,
+            id,
+            data,
         }
     }
-    Ok(data)
+    pub fn get_info(&self) {
+        println!("Packet Length: {0}\nPacket ID: {1}", self.length, self.id);
+    }
+    
 }
 
 
-
-async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<State> {
-   
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<()>{
+    let mut player_name = String::new();
+    let mut player_uuid = String::new();
     
-    println!("STATE: {:?}", state);
+    let mut buf = Vec::new();
+    loop {
+        buf.clear();
 
-    println!("======================\n");
-    
-    stream.readable().await?;
-
-    let mut data: Vec<u8> = read_data(&mut stream).unwrap();
-    
-    let size = data.len();
-    let meme = data.clone();
-    let (packet_length, packet_id, data) = parse_length_packid(data);
-    
-    println!("Data Size: {}", size);
-    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
-
-    stream.writable().await?;
-
-    match state {
-        State::Handshake => {
-            println!("initiating handshake with {addr}");
-            match parse_handshake(packet_length, packet_id, data.clone()) {
-                1 => {
-
-                    stream.flush().await?;
-
-                    return Ok(State::Status)
-                },
-                2 => {
-                    stream.flush().await?;
-                    state = State::Login;
-                    println!("STATE: {:?}", state);
-
-                    println!("======================\n");
-           
-                    let mut data = read_data(&mut stream).unwrap();
-
-                    let size = data.len();
-                    println!("Data Size: {}", size);
-                    
-                    let (packet_length, packet_id, data) = parse_length_packid(data);
-                    println!("Packet Length: {0}\nPacketID:{1}", packet_length, packet_id);
-
-                    parse_login_start(packet_length, packet_id, data);
-
-
-
-                },
-                _ => return Ok(State::Handshake),
+        println!("attempting to read from stream");
+        stream.readable().await?;
+        let mut raw_data = Vec::new();
+        match stream.try_read_buf( &mut buf) {
+            Ok(0) => {
+                println!("Connection Closed");
+            }
+            Ok(n) => {
+                raw_data.extend_from_slice(&buf[..n]);
+            }
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                panic!("Would Block");
+                state = State::Handshake;
+            }
+            Err(e) => {
+                println!("Failed to read from socket; err = {:?}", e);
+                return Err(e);
             }
         }
-        State::Status => {
-            println!("Status");
-            let responce = craft_status_responce();
-            
-            parse_mystery_packet(meme);
+
+        println!("STATE: {:?}", state);
+
+        println!("======================\n");
+
+        let size = raw_data.len();
+        let meme = raw_data.clone();
+        let packet = make_packet(raw_data.clone());
+
+        println!("Data Size: {}", size);
+        packet.get_info();
 
 
-        }
-        
-        _ => {
-            println!("Not Handshake");
+        match state {
+            State::Handshake => {
+                println!("initiating handshake with {addr}");
+                match parse_handshake(packet.length, packet.id, packet.data) {
+                    1 => {
+                        state = State::Status;
+                        println!("Handshake Success");
+                        stream.writable().await?;
+                        stream.flush().await?;
+
+
+                    },
+                    2 => {
+                        state = State::Login;
+                        stream.writable().await?;
+                        stream.flush().await?;
+
+                    },
+                    _ => {
+                        println!("Handshake Failed");
+                    }
+                }
+                            }
+            State::Status => {
+                println!("Status");
+
+                match packet.id {
+                    0 => {
+                        println!("Request");
+                        let responce = craft_status_responce();
+                        
+                        stream.writable().await?;
+                        stream.flush().await?;
+                        stream.write_all(&responce).await?;
+                        stream.writable().await?;
+                        stream.flush().await?;
+                    }
+                    1 => {
+                        println!("Ping");
+                        let responce = raw_data.clone();
+                        stream.writable().await?;
+                        stream.write_all(&responce).await?;
+                    }
+                    _ => {
+                        println!("Status Failed");
+                    }
+                }
+
+
+            }
+            State::Login => {
+                println!("login");
+                match packet.id {
+                    0 => {
+                        println!("Login Start");
+                        let (name, uuid) = parse_login_start(packet.data);
+                        player_name = name;
+                        player_uuid = uuid;
+                        println!("Name: {0}\nUUID: {1}", player_name, player_uuid);
+                        println!("Sending Encryption Request");
+
+                    }
+                    1 => {
+                        println!("Encryption Response");
+                    }
+                    _ => {
+                        println!("Login Failed");
+                    }
+                }
+
+            }
+
+            _ => {
+                println!("Not Handshake");
+            }
         }
     }
-
-
-    //for item in data {
-    //    println!("{:02X}", item);
-    //}
-
-    
-
-    Ok(State::Handshake)
+    Ok(())
 }
 
 #[cfg(test)]
