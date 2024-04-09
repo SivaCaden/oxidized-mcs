@@ -19,12 +19,12 @@
 // [ ] - JSON Text Component
 // [X] - Identifier
 // [X] - VarInt
-// [D] - VarLong
+// [X] - VarLong
 // [ ] - Entity Metadata
 // [ ] - Slot
 // [ ] - NBT
 // [X] - Position
-// [ ] - Angle
+// [D] - Angle
 // [X] - UUID
 // [ ] - BitSet
 // [ ] - Fixed BitSet
@@ -411,6 +411,34 @@ impl Position {
     pub fn decode(packet: Vec<u8>) -> ((i64, i64, i64), Vec<u8>) { 
         let (val, out) = Long::decode(packet); 
         ( (val >> 38, val << 52 >> 52, val <<26 >> 38), out )
+    }
+}
+
+// Angle represented as 1/256 steps of a full 360 degrees https://wiki.vg/Protocol#Type:Angle
+pub struct Angle;
+
+impl Angle { 
+    pub fn encode_256(angle: u8, packet: Vec<u8>) -> Vec<u8> {
+        let mut out = packet.clone();
+        out.push(angle);
+        out
+    }
+
+    pub fn decode_256(packet: Vec<u8>) -> (u8, Vec<u8>) {
+        let mut out = packet.clone();
+        (out.remove(0), out)
+    }
+
+    pub fn encode_360(angle: u32, packet: Vec<u8>) -> Vec<u8> { 
+        let angle_360 = if angle >= 360 { angle - 360 } else { angle };
+        let angle_256 = (256 * angle_360) / 360; 
+        Angle::encode_256(angle_256.try_into().unwrap(), packet)
+    }
+
+    pub fn decode_360(packet: Vec<u8>) -> (u32, Vec<u8>) {
+        let (angle_256, out) = Angle::decode_256(packet);
+        let angle_360: u32 = (angle_256 as u32 * 360) / 256;
+        ( angle_360, out )
     }
 }
 

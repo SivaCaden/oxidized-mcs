@@ -352,6 +352,32 @@ mod tests {
     }
 
     #[test]
+    fn angle() {
+        // DECODE TEST
+        let packet = vec![0x40, 0x80, 0xC0]; // 64/256, 128/256, 192/256 steps in a turn
+
+        let (angle1, packet) = Angle::decode_256(packet);
+        let (angle2, packet) = Angle::decode_256(packet);
+        let (angle3, packet) = Angle::decode_256(packet);
+
+        assert_eq!(angle1, 64);
+        assert_eq!(angle2, 128);
+        assert_eq!(angle3, 192);
+
+        let packet = vec![0x40, 0x80, 0xC0]; // 90, 180, 270 degrees
+
+        let (angle1, packet) = Angle::decode_360(packet);
+        let (angle2, packet) = Angle::decode_360(packet);
+        let (angle3, packet) = Angle::decode_360(packet);
+
+        assert_eq!(angle1, 90);
+        assert_eq!(angle2, 180);
+        assert_eq!(angle3, 270);
+
+        // ENCODE TEST
+    }
+
+    #[test]
     fn uuid() {
         // DECODE TEST -- using UUID for Sir_Goatsalot (me :))
         let packet = vec![0x02, 0x75, 0x48, 0xC6, 
