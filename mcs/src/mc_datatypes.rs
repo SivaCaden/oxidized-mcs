@@ -24,7 +24,7 @@
 // [ ] - Slot
 // [ ] - NBT
 // [X] - Position
-// [D] - Angle
+// [X] - Angle
 // [X] - UUID
 // [ ] - BitSet
 // [ ] - Fixed BitSet
