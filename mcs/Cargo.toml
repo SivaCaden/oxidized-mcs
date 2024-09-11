@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 aes = "0.8.4"
+anyhow = "1.0.87"
 deflate = "1.0.0"
 der = "0.7.8"
 flate2 = "1.0.28"
