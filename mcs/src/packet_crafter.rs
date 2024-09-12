@@ -7,7 +7,7 @@ pub fn craft_status_responce() -> Vec<u8> {
     let json_responce = r#"
     {
         "version": {
-            "name": "1.20.4",
+            "name": "1.21.1",
             "protocol": 765
         },
         "players": {
@@ -28,6 +28,8 @@ pub fn craft_status_responce() -> Vec<u8> {
         "previewsChat": true
     } 
     "#;
+
+    println!("  sending status responce");
 
     let mut responce: Vec<u8> = Vec::new();
     responce = VarInt::encode(STATUS_RESPONCE_PACKET_ID as i32, responce);

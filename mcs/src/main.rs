@@ -19,10 +19,10 @@ use std::{
 };
 use tokio::{io::{AsyncWriteExt, AsyncReadExt, BufReader}, net::{TcpListener, TcpStream}};
 use rand::thread_rng;
-use rsa::{RsaPrivateKey, RsaPublicKey};
 
 
 pub mod mc_datatypes;
+mod drastic_changes;
 use mc_datatypes::*;
 
 pub mod big_parse;
@@ -49,7 +49,7 @@ async fn main() ->  Result<()> {
     println!("Spooling Server...");
     println!("Generating Keys...");
     // ok I know this is not the secure way of generating and storing
-    // criptographic keys but I just want this to work ok?
+    // cryptographic keys but I just want this to work ok?
 
 
     {
@@ -62,6 +62,7 @@ async fn main() ->  Result<()> {
         let server = TcpListener::bind(addr).await.unwrap();
 
         loop {
+            println!("Waiting for connection...");
 
             let (stream, addr) = server.accept().await.unwrap();
 
@@ -102,21 +103,21 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
     
     let mut buf = Vec::new();
     loop {
-        buf.clear();
 
         println!("attempting to read from stream");
         stream.readable().await?;
+        println!("Reading from stream");
         let mut raw_data = Vec::new();
         match stream.try_read_buf( &mut buf) {
             Ok(0) => {
                 println!("Connection Closed");
+                break;
             }
             Ok(n) => {
                 raw_data.extend_from_slice(&buf[..n]);
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                panic!("Would Block");
-                state = State::Handshake;
+                continue;
             }
             Err(e) => {
                 println!("Failed to read from socket; err = {:?}", e);
@@ -145,6 +146,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         println!("Handshake Success");
                         stream.writable().await?;
                         stream.flush().await?;
+                        buf.clear();
 
 
                     },
@@ -172,15 +174,18 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         stream.write_all(&responce).await?;
                         stream.writable().await?;
                         stream.flush().await?;
+                        buf.clear();
                     }
                     1 => {
                         println!("Ping");
                         let responce = raw_data.clone();
                         stream.writable().await?;
                         stream.write_all(&responce).await?;
+                        buf.clear();
                     }
                     _ => {
                         println!("Status Failed");
+                        buf.clear();
                     }
                 }
 
