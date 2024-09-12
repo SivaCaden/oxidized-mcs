@@ -53,7 +53,7 @@ async fn main() ->  Result<()> {
 
 
     {
-        let host = "172.19.161.27";
+        let host = "192.168.1.200";
         let port: u16 = 25565;
         let addr = format!("{}:{}", host, port).to_string();
         
@@ -154,6 +154,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         state = State::Login;
                         stream.writable().await?;
                         stream.flush().await?;
+                        buf.clear()
 
                     },
                     _ => {
@@ -194,6 +195,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             }
             State::Login => {
                 println!("login");
+                println!("Packet data: {:x?}", packet.data);
                 match packet.id {
                     0 => {
                         println!("Login Start");
