@@ -2,7 +2,26 @@ use crate::mc_datatypes::*;
 
 
 
+// mode 1 status packet ids
 const STATUS_RESPONCE_PACKET_ID: u8 = 0x00;
+const STATUS_PING_PACKET_ID: u8 = 0x01;
+// mode 2 login packet ids
+const LOGIN_DISCONNECT_PACKET_ID: u8 = 0x00;
+const LOGIN_ENCRYPTION_REQUEST_PACKET_ID: u8 = 0x01;
+const LOGIN_SUCCESS_PACKET_ID: u8 = 0x02;
+const LOGIN_SET_COMPRESSION_PACKET_ID: u8 = 0x03;
+const LOGIN_PLUGIN_REQUEST_PACKET_ID: u8 = 0x04;
+const LOGIN_COOKIE_REQUEST_PACKET_ID: u8 = 0x05;
+
+
+pub struct PacketCrafter {
+    pub packet_id: u8,
+    pub packet_data: Vec<u8>,
+}
+
+
+
+
 pub fn craft_status_responce() -> Vec<u8> {
     let json_responce = r#"
     {
@@ -11,12 +30,10 @@ pub fn craft_status_responce() -> Vec<u8> {
             "protocol": 767
         },
         "players": {
-            "max": 69,
-            "online": 420,
+            "max": 10,
+            "online": 0,
             "sample": [
             {
-                "name": "thinkofdeath",
-                "id": "4566e69f-c907-48ee-8d71-d7ba5aa00d20"
             }
             ]
         },
