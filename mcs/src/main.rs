@@ -19,6 +19,7 @@ use std::{
 };
 use tokio::{io::{AsyncWriteExt, AsyncReadExt, BufReader}, net::{TcpListener, TcpStream}};
 use rand::thread_rng;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 
 
 pub mod mc_datatypes;
@@ -50,6 +51,11 @@ async fn main() ->  Result<()> {
     println!("Generating Keys...");
     // ok I know this is not the secure way of generating and storing
     // cryptographic keys but I just want this to work ok?
+    let mut rng = thread_rng();
+    let bits = 1024;
+    let private_key = RsaPrivateKey::new(&mut rng, bits).expect("   Failed to generate a key");
+    let public_key = RsaPublicKey::from(&private_key);
+    println!("Keys Generated");
 
 
     {
@@ -59,9 +65,23 @@ async fn main() ->  Result<()> {
         
         let mut state = State::Handshake;
 
-        let server = TcpListener::bind(addr).await.unwrap();
+        let server = match TcpListener::bind(addr.clone()).await {
+            Ok(server) => {
+                println!("Server Bound to: {}", addr);
+                server
+            }
+            Err(e) => {
+                println!("  Failed to bind to address: {}", e);
+                println!("  binding to localhost instead");
+                let addr = format!("{}:{}", "127.0.0.1", PORT).to_string();
+                TcpListener::bind(addr).await.unwrap()
+            }
+        };
 
         loop {
+            let public_key = public_key.clone();
+            let private_key = private_key.clone();
+
             println!("Waiting for connection...");
 
             let (stream, addr) = server.accept().await.unwrap();
@@ -70,7 +90,7 @@ async fn main() ->  Result<()> {
             println!("client connected");
             
             tokio::spawn(async move {
-                let _ = handle_connection( addr.to_string(), stream, state).await.unwrap();
+                let _ = handle_connection( addr.to_string(), stream, state, public_key.clone(), private_key.clone()).await.unwrap();
             });
 
         }
@@ -97,7 +117,7 @@ impl Packet {
 }
 
 
-async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State ) -> Result<()>{
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , public_key: RsaPublicKey, private_key: RsaPrivateKey) -> Result<()>{
     let mut player_name = String::new();
     let mut player_uuid = String::new();
     
@@ -110,7 +130,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         let mut raw_data = Vec::new();
         match stream.try_read_buf( &mut buf) {
             Ok(0) => {
-                println!("Connection Closed");
+                println!("  Connection Closed");
                 break;
             }
             Ok(n) => {
@@ -181,7 +201,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     1 => {
                         println!("Ping");
                         let responce = raw_data.clone();
-                        println!("Sending Ping Responce");
+                        println!("Pong!");
                         stream.writable().await?;
                         stream.write_all(&responce).await?;
                         buf.clear();
@@ -203,14 +223,28 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         let (name, uuid) = parse_login_start(packet.data);
                         player_name = name;
                         player_uuid = uuid;
-                        println!("Name: {0}\nUUID: {1}", player_name, player_uuid);
-                        println!("Sending Encryption Request");
+                        println!("    Name: {0}\n    UUID: {1}", player_name, player_uuid);
+                        println!("    Sending Encryption Request");
+                        let responce = craft_encryption_request(public_key.clone());
 
+                        stream.writable().await?;
+                        stream.write_all(&responce).await?;
+                        stream.writable().await?;
+                        stream.flush().await?;
+
+
+                        buf.clear();
                     }
                     1 => {
                         println!("Encryption Response");
+                        
+                        // if responce is good
+                        // send login success
+
+
                         buf.clear();
                     }
+                    
                     _ => {
                         println!("Login Failed");
                         buf.clear();

@@ -54,7 +54,7 @@ pub fn parse_handshake(length: i32, id: i32, data: Vec<u8>) -> u32 {
     next_state as u32
 }
 pub fn parse_login_start(data: Vec<u8>) -> (String, String) {
-    print!("     Parsing login start");
+    println!("    Parsing login start");
     let (name, data) = StringMC::decode(data);
     let (uuid, data) = Uuid::decode(data);
     (name, uuid.to_string())

@@ -1,4 +1,6 @@
 use crate::mc_datatypes::*;
+use base64::{engine::general_purpose, Engine as _};
+use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 
 
 
@@ -14,12 +16,13 @@ const LOGIN_PLUGIN_REQUEST_PACKET_ID: u8 = 0x04;
 const LOGIN_COOKIE_REQUEST_PACKET_ID: u8 = 0x05;
 
 
-pub struct PacketCrafter {
-    pub packet_id: u8,
-    pub packet_data: Vec<u8>,
+
+fn gift_wrap_packet(packet: Vec<u8>) -> Vec<u8> {
+    let mut out: Vec<u8> = Vec::new();
+    out = VarInt::encode(packet.len() as i32, out);
+    out.extend_from_slice(&packet);
+    out
 }
-
-
 
 
 pub fn craft_status_responce() -> Vec<u8> {
@@ -58,4 +61,38 @@ pub fn craft_status_responce() -> Vec<u8> {
     out
 }
 
+pub fn craft_encryption_request(public_key: RsaPublicKey) -> Vec<u8> {
 
+
+    println!("    crafting encryption request");
+
+    println!("    generateing verify token");
+    // generate a random 4 byte verify token
+    let mut verify_token: Vec<u8> = Vec::new();
+    for _ in 0..4 {
+        verify_token.push(rand::random::<u8>());
+    }
+
+    let mut responce: Vec<u8> = Vec::new();
+    responce = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, responce);
+    // server id "appears to be empty"
+    responce = StringMC::encode("".to_string(), responce);
+    // public key length as a Varint
+    responce = VarInt::encode(public_key.size() as i32, responce);
+    // encode the public key bites as base64 and wrap in PEM
+    let base_64_key = general_purpose::STANDARD.encode(public_key.n().to_bytes_be());
+    let pem = format!("-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----", base_64_key);
+    responce.extend_from_slice(pem.as_bytes());
+    // verify token length as a Varint
+    responce = VarInt::encode(verify_token.len() as i32, responce);
+    // verify token in bytes
+    responce.extend_from_slice(&verify_token);
+    // should authenticate through mojang servers?
+    responce = Bool::encode(false, responce);
+
+
+    gift_wrap_packet(responce)
+
+
+
+}
