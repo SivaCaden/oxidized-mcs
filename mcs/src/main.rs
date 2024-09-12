@@ -159,6 +159,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     },
                     _ => {
                         println!("Handshake Failed");
+                        buf.clear();
                     }
                 }
                             }
@@ -208,9 +209,12 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     }
                     1 => {
                         println!("Encryption Response");
+                        buf.clear();
                     }
                     _ => {
                         println!("Login Failed");
+                        buf.clear();
+
                     }
                 }
 
@@ -218,6 +222,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
 
             _ => {
                 println!("Not Handshake");
+                buf.clear();
             }
         }
     }
@@ -341,10 +346,13 @@ mod tests {
                         0x20, 0x69, 0x73, 0x20, 0x74, 0x68, 0x65, 0x20,
                         0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e,  // To be or not to be, That is the question
                         0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]; // Misc. other data
+        let my_nuts = vec![ 0x07, 0x41, 0x4b, 0x41, 0x5f, 0x64, 0x65, 0x6e ];
+
 
        let (string, packet) = StringMC::decode(packet);
        assert_eq!(string, String::from("To be or not to be, That is the question"));
        assert_eq!(packet, vec![0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69]);
+       assert_eq!(my_nuts, StringMC::encode(String::from("AKA_den"), vec![])); 
 
        // ENCODE TEST
        let test_packet = vec![0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69, 0x69,// Some other data
