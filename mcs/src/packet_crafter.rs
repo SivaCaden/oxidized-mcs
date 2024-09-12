@@ -8,7 +8,7 @@ pub fn craft_status_responce() -> Vec<u8> {
     {
         "version": {
             "name": "1.21.1",
-            "protocol": 765
+            "protocol": 767
         },
         "players": {
             "max": 69,

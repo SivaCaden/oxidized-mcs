@@ -53,7 +53,7 @@ async fn main() ->  Result<()> {
 
 
     {
-        let host = "127.0.0.1";
+        let host = "172.19.161.27";
         let port: u16 = 25565;
         let addr = format!("{}:{}", host, port).to_string();
         
@@ -179,6 +179,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     1 => {
                         println!("Ping");
                         let responce = raw_data.clone();
+                        println!("Sending Ping Responce");
                         stream.writable().await?;
                         stream.write_all(&responce).await?;
                         buf.clear();
