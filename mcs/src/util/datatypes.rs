@@ -1,37 +1,39 @@
-// Types for the Minecraft Server Protocol based on https://wiki.vg/Protocol#Data_types
-// Authors: Foster Sullivan (SirGoatsalot), Caden Siva (SivaCaden)
-// Created: 3/4/2024
-
-// --- DATA TYPES TODO ---
-// X - Tested and functional
-// D - In development
-//   - Not started
-// 
-// [X] - Boolean
-// [X] - Byte / UByte
-// [X] - Short / UShort
-// [X] - Int
-// [X] - Long
-// [X] - Float
-// [X] - Double
-// [X] - String
-// [ ] - Text Component
-// [ ] - JSON Text Component
-// [X] - Identifier
-// [X] - VarInt
-// [X] - VarLong
-// [ ] - Entity Metadata
-// [ ] - Slot
-// [ ] - NBT
-// [X] - Position
-// [X] - Angle
-// [X] - UUID
-// [ ] - BitSet
-// [ ] - Fixed BitSet
-// [ ] - Optional X
-// [ ] - Array of X
-// [ ] - X Enum
-// [ ] - Byte Array
+/*
+ * Types for the Minecraft Server Protocol based on https://wiki.vg/Protocol#Data_types
+ * Authors: Foster Sullivan (SirGoatsalot), Caden Siva (SivaCaden)
+ * Created: 3/4/2024
+ 
+ * --- DATA TYPES TODO ---
+ * X - Tested and functional
+ * D - In development
+ *   - Not started
+ * 
+ * [X] - Boolean
+ * [X] - Byte / UByte
+ * [X] - Short / UShort
+ * [X] - Int
+ * [X] - Long
+ * [X] - Float
+ * [X] - Double
+ * [X] - String
+ * [ ] - Text Component
+ * [ ] - JSON Text Component
+ * [X] - Identifier
+ * [X] - VarInt
+ * [X] - VarLong
+ * [ ] - Entity Metadata
+ * [ ] - Slot
+ * [ ] - NBT
+ * [X] - Position
+ * [X] - Angle
+ * [X] - UUID
+ * [ ] - BitSet
+ * [ ] - Fixed BitSet
+ * [ ] - Optional X
+ * [ ] - Array of X
+ * [ ] - X Enum
+ * [ ] - Byte Array
+ */
 
 use regex::Regex;
 
