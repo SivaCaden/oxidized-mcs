@@ -21,17 +21,18 @@ use tokio::{io::{AsyncWriteExt, AsyncReadExt, BufReader}, net::{TcpListener, Tcp
 use rand::thread_rng;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 
+pub mod util;
+use util::datatypes::*;
 
-pub mod mc_datatypes;
-mod drastic_changes;
-use mc_datatypes::*;
+pub mod controllers;
 
-pub mod big_parse;
-use big_parse::*;
+pub mod models;
 
-pub mod packet_crafter;
-use packet_crafter::*;
+pub mod server;
 
+pub mod packet;
+use packet::packet_crafter::*;
+use packet::packet_parser::*;
 
 #[derive(Debug, Copy, Clone)]
 enum State {

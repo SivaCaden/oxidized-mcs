@@ -1,4 +1,5 @@
-
+// Basic 2D and 3D vectors with basic utilities.
+// Author: Caden Siva
 
 pub struct Vector2D {
     x: f32,

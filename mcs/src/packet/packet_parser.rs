@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use crate::mc_datatypes::{
+use crate::util::datatypes::{
     VarInt,
     StringMC,
     UShort,

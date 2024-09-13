@@ -1,4 +1,4 @@
-use crate::mc_datatypes::*;
+use crate::util::datatypes::*;
 use base64::{engine::general_purpose, Engine as _};
 use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 
