@@ -1,9 +1,11 @@
-use std::io::Read;
+// Decodes incoming packets for minecraft server into rust-friendly objects.
+// Authored by: Three rats in a trench coat.
+
+#![allow(unused_variables, dead_code)]
 
 use crate::util::datatypes::{
     VarInt,
     StringMC,
-    UShort,
     Uuid,
 };
 

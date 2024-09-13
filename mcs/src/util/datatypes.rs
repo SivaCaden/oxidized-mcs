@@ -199,7 +199,7 @@ impl Float {
         let mut out = packet.clone();
         let _ = out.drain(0..4);
         let val_bytes = &packet[0..4];
-        let mut val = f32::from_be_bytes(val_bytes.try_into().unwrap());
+        let val = f32::from_be_bytes(val_bytes.try_into().unwrap());
         ( val, out )
     }
 }
@@ -218,7 +218,7 @@ impl Double {
         let mut out = packet.clone();
         let _ = out.drain(0..4);
         let val_bytes = &packet[0..8];
-        let mut val = f64::from_be_bytes(val_bytes.try_into().unwrap());
+        let val = f64::from_be_bytes(val_bytes.try_into().unwrap());
         ( val, out )
     }
 }
@@ -238,10 +238,6 @@ impl StringMC {
     }
 
     pub fn decode(data: Vec<u8>) -> ( String, Vec<u8> ) {
-        // A String of UTF-8 Characters, prefixed with its size in bytes as a VarInt.
-        let mut length_buffer: Vec<u8> = Vec::new();
-        let length: i32;
-
         // Step 1: Find the VarInt
         let ( length, data ) = VarInt::decode(data);
 
@@ -300,7 +296,7 @@ impl VarInt {
         let segment_bits = 0b01111111;
         let continue_bit = 0b10000000;
 
-        let mut raw_bytes = value.to_be_bytes();
+        let raw_bytes = value.to_be_bytes();
         let mut raw_value: u32 = u32::from_be_bytes(raw_bytes);
         let mut out_bytes: Vec<u8> = vec![];
 
@@ -353,7 +349,7 @@ impl VarLong {
         let segment_bits = 0b01111111;
         let continue_bit = 0b10000000;
 
-        let mut raw_bytes = value.to_be_bytes();
+        let raw_bytes = value.to_be_bytes();
         let mut raw_value: u64 = u64::from_be_bytes(raw_bytes);
         let mut out_bytes: Vec<u8> = vec![];
 
@@ -460,9 +456,9 @@ impl Uuid {
 
         let mut zeros = 0_u64.to_ne_bytes().to_vec();
         let mut msb = msb.to_be_bytes().to_vec();
-        let mut lsb = lsb.to_be_bytes().to_vec();
+        let lsb = lsb.to_be_bytes().to_vec();
 
-        for byte in 0..msb.len() { msb.push(0) }
+        for _byte in 0..msb.len() { msb.push(0) }
         for byte in lsb { zeros.push(byte) }
 
         let msb = u128::from_be_bytes(msb.try_into().unwrap());

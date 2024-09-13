@@ -1,8 +1,12 @@
-use crate::util::datatypes::*;
+// Creates outgoing packets for Minecraft server.
+// Authored by: Three rats in a trench coat.
+
+#![allow(dead_code)]
+
 use base64::{engine::general_purpose, Engine as _};
-use rsa::{traits::PublicKeyParts, Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
+use rsa::{traits::PublicKeyParts, RsaPublicKey};
 
-
+use crate::util::datatypes::*;
 
 // mode 1 status packet ids
 const STATUS_RESPONCE_PACKET_ID: u8 = 0x00;
@@ -25,8 +29,8 @@ fn gift_wrap_packet(packet: Vec<u8>) -> Vec<u8> {
 }
 
 
-pub fn craft_status_responce() -> Vec<u8> {
-    let json_responce = r#"
+pub fn craft_status_response() -> Vec<u8> {
+    let json_response = r#"
     {
         "version": {
             "name": "1.21.1",
@@ -49,13 +53,13 @@ pub fn craft_status_responce() -> Vec<u8> {
     } 
     "#;
 
-    println!("  sending status responce");
+    println!("  sending status response");
 
-    let mut responce: Vec<u8> = Vec::new();
-    responce = VarInt::encode(STATUS_RESPONCE_PACKET_ID as i32, responce);
-    responce = StringMC::encode(json_responce.to_string(), responce);
-    let lenght = responce.len() as i32;
-    gift_wrap_packet(responce)
+    let mut response: Vec<u8> = Vec::new();
+    response = VarInt::encode(STATUS_RESPONCE_PACKET_ID as i32, response);
+    response = StringMC::encode(json_response.to_string(), response);
+    let _length = response.len() as i32;
+    gift_wrap_packet(response)
 }
 
 pub fn craft_encryption_request(public_key: RsaPublicKey) -> Vec<u8> {
@@ -70,25 +74,25 @@ pub fn craft_encryption_request(public_key: RsaPublicKey) -> Vec<u8> {
         verify_token.push(rand::random::<u8>());
     }
 
-    let mut responce: Vec<u8> = Vec::new();
-    responce = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, responce);
+    let mut response: Vec<u8> = Vec::new();
+    response = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, response);
     // server id "appears to be empty"
-    responce = StringMC::encode("".to_string(), responce);
+    response = StringMC::encode("".to_string(), response);
     // public key length as a Varint
-    responce = VarInt::encode(public_key.size() as i32, responce);
+    response = VarInt::encode(public_key.size() as i32, response);
     // encode the public key bites as base64 and wrap in PEM
     let base_64_key = general_purpose::STANDARD.encode(public_key.n().to_bytes_be());
     let pem = format!("-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----", base_64_key);
-    responce.extend_from_slice(pem.as_bytes());
+    response.extend_from_slice(pem.as_bytes());
     // verify token length as a Varint
-    responce = VarInt::encode(verify_token.len() as i32, responce);
+    response = VarInt::encode(verify_token.len() as i32, response);
     // verify token in bytes
-    responce.extend_from_slice(&verify_token);
+    response.extend_from_slice(&verify_token);
     // should authenticate through mojang servers?
-    responce = Bool::encode(false, responce);
+    response = Bool::encode(false, response);
 
 
-    gift_wrap_packet(responce)
+    gift_wrap_packet(response)
 
 
 
