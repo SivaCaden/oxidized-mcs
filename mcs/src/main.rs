@@ -33,16 +33,17 @@
  * |    | status_control.rs - "Status" state packets go here (may be merged with HS later)
 */
 
-use std::io::{ ErrorKind, Result }; 
-use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
-use rand::thread_rng;
-use rsa::{RsaPrivateKey, RsaPublicKey};
-
+// Including all directories in crate hierarchy
 pub mod util;
 pub mod controllers;
 pub mod models;
 pub mod server;
 pub mod tests;
+
+use std::io::{ ErrorKind, Result }; 
+use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
+use rand::thread_rng;
+use rsa::{RsaPrivateKey, RsaPublicKey};
 
 use util::packet_crafter::*;
 use util::packet_parser::*;
