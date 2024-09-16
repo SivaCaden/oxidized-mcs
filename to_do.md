@@ -1,12 +1,20 @@
+Implement TDD for different util modules
 
+- Datatypes.rs
+- Packet.rs (crafter/decoder)
 
+Implement TDD for DB Objects
 
+- Handshake.rs
+- Config.rs
+- Login.rs
+- Game.rs
+- etc.
 
-datatypes
+Discuss which DB to use
 
-String 
-Unsigned Short
-Enum
+- MongoDB (noSQL)
+- PostgreSQL
+- Potentially GraphQL
 
-
-big parse .rs
+Divide and conquer!
