@@ -35,7 +35,9 @@
 
 // Including all directories in crate hierarchy
 pub mod util;
-pub mod controllers;
+pub mod controllers{
+    pub mod handshake;
+}
 pub mod models;
 pub mod server;
 pub mod tests;
