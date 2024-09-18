@@ -11,7 +11,7 @@ use crate::Packet;
 use crate::util::packet_parser::*;
 
 
-async fn handel_handshake(addr: &String, packet: &Packet) -> Result<State>{
+pub async fn handel_handshake(addr: &String, packet: &Packet) -> Result<State>{
 
         println!("initiating handshake with {addr}");
         match parse_handshake(packet.length, packet.id, packet.data.clone()) {

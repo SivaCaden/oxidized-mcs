@@ -174,23 +174,11 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
 
         match state {
             State::Handshake => {
-                println!("initiating handshake with {addr}");
-                match parse_handshake(packet.length, packet.id, packet.data) {
+                    state = match controllers::handshake::handel_handshake(&addr, &packet).await{
+                        Ok(new_state) => new_state,
+                        Err(e) => { println!("Handshake Failed: {:?}", e); State::Handshake }
+                    };
 
-                    1 => {
-                        state = State::Status;
-                        println!("Handshake Success");
-                    },
-
-                    2 => {
-                        state = State::Login;
-                    },
-
-                    _ => {
-                        println!("Handshake Failed");
-                        buf.clear();
-                    }
-                }
                 stream.writable().await?;
                 stream.flush().await?;
                 buf.clear();
