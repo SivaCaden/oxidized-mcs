@@ -51,7 +51,7 @@ use util::packet_crafter::*;
 use util::packet_parser::*;
 
 #[derive(Debug, Copy, Clone)]
-enum State {
+pub enum State {
     Handshake,
     Status,
     Login,
@@ -68,6 +68,7 @@ async fn main() {
     println!("Generating Keys...");
     // ok I know this is not the secure way of generating and storing
     // cryptographic keys but I just want this to work ok?
+    // throw this in a seperate file later please caden? (ok)
     let mut rng = thread_rng();
     let bits = 1024;
     let private_key = RsaPrivateKey::new(&mut rng, bits).expect("   Failed to generate a key");
@@ -179,16 +180,10 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                     1 => {
                         state = State::Status;
                         println!("Handshake Success");
-                        stream.writable().await?;
-                        stream.flush().await?;
-                        buf.clear();
                     },
 
                     2 => {
                         state = State::Login;
-                        stream.writable().await?;
-                        stream.flush().await?;
-                        buf.clear()
                     },
 
                     _ => {
@@ -196,6 +191,9 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         buf.clear();
                     }
                 }
+                stream.writable().await?;
+                stream.flush().await?;
+                buf.clear();
             }
             
             State::Status => {
