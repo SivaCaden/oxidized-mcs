@@ -37,6 +37,7 @@
 pub mod util;
 pub mod controllers{
     pub mod handshake;
+    pub mod status;
 }
 pub mod models;
 pub mod server;
@@ -187,33 +188,43 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             State::Status => {
                 println!("Status");
 
-                match packet.id {
-                    0 => {
-                        println!("Request");
-                        let response = craft_status_response();
-                        
-                        stream.writable().await?;
-                        stream.flush().await?;
-                        stream.write_all(&response).await?;
-                        stream.writable().await?;
-                        stream.flush().await?;
-                        buf.clear();
+                if false {
+                    match controllers::status::handle_status(&mut stream, raw_data.clone(), &packet).await {
+                        Ok(_) => {},
+                        Err(e) => { println!("Status Failed: {:?}", e); }
                     }
 
-                    1 => {
-                        println!("Ping");
-                        let response = raw_data.clone();
-                        println!("Pong!");
-                        stream.writable().await?;
-                        stream.write_all(&response).await?;
-                        buf.clear();
-                    }
 
-                    _ => {
-                        println!("Status Failed");
-                        buf.clear();
-                    }
                 }
+                else {
+                    match packet.id {
+                        0 => {
+                            println!("Request");
+                            let response = craft_status_response();
+
+                            stream.writable().await?;
+                            stream.flush().await?;
+                            stream.write_all(&response).await?;
+                        }
+
+                        1 => {
+                            println!("Ping");
+                            let response = raw_data.clone();
+                            println!("Pong!");
+                            stream.writable().await?;
+                            stream.write_all(&response).await?;
+                        }
+
+                        _ => {
+                            println!("Status Failed");
+                        }
+                    }
+
+                }
+                stream.writable().await?;
+                stream.flush().await?;
+                buf.clear();
+
             }
 
             State::Login => {
