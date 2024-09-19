@@ -1,4 +1,5 @@
 
+use pkcs1::EncodeRsaPublicKey;
 use rsa::{RsaPublicKey, RsaPrivateKey, Pkcs1v15Encrypt};
 use rand::thread_rng;
 use std::sync::Arc;
@@ -25,6 +26,21 @@ impl KeyController{
     }
     pub fn get_public_key(&self) -> RsaPublicKey{
         self.public_key.clone()
+    }
+
+    pub fn encode_public_key(&self) -> Vec<u8>{
+        let out_bytes = match self.public_key.clone().to_pkcs1_der() {
+            Ok(document) => {
+                let bytes = document.as_bytes().to_vec();
+                bytes
+            },
+            Err(e) => {
+                println!("ough {}", e);
+                Vec::new() 
+            }
+        };
+        return out_bytes;
+
     }
 
     pub fn encode(&self, data: Vec<u8>) -> Vec<u8>{
