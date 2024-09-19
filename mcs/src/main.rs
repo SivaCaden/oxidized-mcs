@@ -35,7 +35,7 @@
 
 // Including all directories in crate hierarchy
 pub mod util;
-pub mod controllers{ pub mod handshake; pub mod status; pub mod key_controller; }
+pub mod controllers{ pub mod handshake; pub mod status; pub mod key_controller; pub mod login;}
 pub mod models;
 pub mod server;
 pub mod tests;
@@ -43,7 +43,6 @@ pub mod tests;
 use std::io::{ ErrorKind, Result }; 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 
-use util::packet_crafter::*;
 use util::packet_parser::*;
 use controllers::key_controller::KeyController;
 
@@ -108,9 +107,7 @@ impl Packet {
 
 
 async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , key_controller: KeyController) -> Result<()>{
-    let mut player_name;
-    let mut player_uuid;
-    
+
     let mut buf = Vec::new();
     loop {
 
@@ -139,12 +136,12 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
 
         match state {
             State::Handshake => {
-                    state = match controllers::handshake::handel_handshake(&addr, &packet).await{
-                        Ok(new_state) => new_state,
-                        Err(e) => { println!("Handshake Failed: {:?}", e); State::Handshake }
-                    };
+                state = match controllers::handshake::handel_handshake(&addr, &packet).await{
+                    Ok(new_state) => new_state,
+                    Err(e) => { println!("Handshake Failed: {:?}", e); State::Handshake }
+                };
             }
-            
+
             State::Status => {
                 println!("Status");
 
@@ -156,49 +153,25 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             }
 
             State::Login => {
-                println!("login");
-                println!("Packet data: {:x?}", packet.data);
-                match packet.id {
-                    0 => {
-                        println!("Login Start");
-                        let (name, uuid) = parse_login_start(packet.data);
-                        player_name = name;
-                        player_uuid = uuid;
-                        println!("    Name: {0}\n    UUID: {1}", player_name, player_uuid);
-                        println!("    Sending Encryption Request");
-                        let response = craft_encryption_request(key_controller.get_public_key());
+                println!("Login");
 
-                        stream.writable().await?;
-                        stream.write_all(&response).await?;
-                        stream.writable().await?;
-                        stream.flush().await?;
-
-                        buf.clear();
-                    }
-
-                    1 => {
-                        println!("Encryption Response");
-                        
-                        // if response is good
-                        // send login success
-
-                        buf.clear();
-                    }
-                    
-                    _ => { println!("Login Failed"); } }
+                match controllers::login::login(&packet, &key_controller, &mut stream).await {
+                    Ok(_) => {println!("Login Success"); },
+                    Err(e) => { println!("Login Failed: {:?}", e); }
+                }
+            }
+            State::_Play => {
+                println!("Play");
             }
 
-            _ => {
-                panic!("Unimplemented Packet State, {:?}", state);
-            }
         }
+
+
+
+        stream.writable().await?;
+        stream.flush().await?;
+        buf.clear();
     }
-
-
-
-    stream.writable().await?;
-    stream.flush().await?;
-    buf.clear();
 
 
     Ok(())
