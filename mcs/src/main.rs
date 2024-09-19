@@ -38,6 +38,7 @@ pub mod util;
 pub mod controllers{
     pub mod handshake;
     pub mod status;
+    pub mod key_controller;
 }
 pub mod models;
 pub mod server;
@@ -45,11 +46,10 @@ pub mod tests;
 
 use std::io::{ ErrorKind, Result }; 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
-use rand::thread_rng;
-use rsa::{RsaPrivateKey, RsaPublicKey};
 
 use util::packet_crafter::*;
 use util::packet_parser::*;
+use controllers::key_controller::KeyController;
 
 #[derive(Debug, Copy, Clone)]
 pub enum State {
@@ -70,11 +70,9 @@ async fn main() {
     // ok I know this is not the secure way of generating and storing
     // cryptographic keys but I just want this to work ok?
     // throw this in a seperate file later please caden? (ok)
-    let mut rng = thread_rng();
-    let bits = 1024;
-    let private_key = RsaPrivateKey::new(&mut rng, bits).expect("   Failed to generate a key");
-    let public_key = RsaPublicKey::from(&private_key);
-    println!("Keys Generated");
+    
+    let key_controller = KeyController::new();
+    
 
     let host = HOST;
     let port: u16 = 25565;
@@ -96,8 +94,8 @@ async fn main() {
     };
 
     loop {
-        let public_key = public_key.clone();
-        let private_key = private_key.clone();
+        let clone_key_controller = key_controller.clone();
+
 
         println!("Waiting for connection...");
 
@@ -107,7 +105,7 @@ async fn main() {
         println!("client connected");
         
         tokio::spawn(async move {
-            let _ = handle_connection( addr.to_string(), stream, state, public_key.clone(), private_key.clone()).await.unwrap();
+            let _ = handle_connection( addr.to_string(), stream, state, clone_key_controller).await.unwrap();
         });
         
     }
@@ -133,7 +131,7 @@ impl Packet {
 }
 
 
-async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , public_key: RsaPublicKey, _private_key: RsaPrivateKey) -> Result<()>{
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , key_controller: KeyController) -> Result<()>{
     let mut player_name;
     let mut player_uuid;
     
@@ -188,39 +186,12 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             State::Status => {
                 println!("Status");
 
-                if false {
-                    match controllers::status::handle_status(&mut stream, raw_data.clone(), &packet).await {
-                        Ok(_) => {},
-                        Err(e) => { println!("Status Failed: {:?}", e); }
-                    }
-
-
+                match controllers::status::handle_status(&mut stream, raw_data.clone(), &packet).await {
+                    Ok(_) => {},
+                    Err(e) => { println!("Status Failed: {:?}", e); }
                 }
-                else {
-                    match packet.id {
-                        0 => {
-                            println!("Request");
-                            let response = craft_status_response();
 
-                            stream.writable().await?;
-                            stream.flush().await?;
-                            stream.write_all(&response).await?;
-                        }
 
-                        1 => {
-                            println!("Ping");
-                            let response = raw_data.clone();
-                            println!("Pong!");
-                            stream.writable().await?;
-                            stream.write_all(&response).await?;
-                        }
-
-                        _ => {
-                            println!("Status Failed");
-                        }
-                    }
-
-                }
                 stream.writable().await?;
                 stream.flush().await?;
                 buf.clear();
@@ -238,7 +209,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         player_uuid = uuid;
                         println!("    Name: {0}\n    UUID: {1}", player_name, player_uuid);
                         println!("    Sending Encryption Request");
-                        let response = craft_encryption_request(public_key.clone());
+                        let response = craft_encryption_request(key_controller.get_public_key());
 
                         stream.writable().await?;
                         stream.write_all(&response).await?;
