@@ -35,11 +35,7 @@
 
 // Including all directories in crate hierarchy
 pub mod util;
-pub mod controllers{
-    pub mod handshake;
-    pub mod status;
-    pub mod key_controller;
-}
+pub mod controllers{ pub mod handshake; pub mod status; pub mod key_controller; }
 pub mod models;
 pub mod server;
 pub mod tests;
@@ -52,12 +48,7 @@ use util::packet_parser::*;
 use controllers::key_controller::KeyController;
 
 #[derive(Debug, Copy, Clone)]
-pub enum State {
-    Handshake,
-    Status,
-    Login,
-    _Play,
-}
+pub enum State { Handshake, Status, Login, _Play, }
 
 const HOST: &str = "127.0.0.1";
 const PORT: u16 = 25565;
@@ -81,10 +72,7 @@ async fn main() {
     let state = State::Handshake;
 
     let server = match TcpListener::bind(addr.clone()).await {
-        Ok(server) => {
-            println!("Server Bound to: {}", addr);
-            server
-        }
+        Ok(server) => { println!("Server Bound to: {}", addr); server }
         Err(e) => {
             println!("  Failed to bind to address: {}", e);
             println!("  binding to localhost instead");
@@ -104,30 +92,18 @@ async fn main() {
         println!("\n=====================");
         println!("client connected");
         
-        tokio::spawn(async move {
-            let _ = handle_connection( addr.to_string(), stream, state, clone_key_controller).await.unwrap();
-        });
+        tokio::spawn(async move { let _ = handle_connection( addr.to_string(), stream, state, clone_key_controller).await.unwrap(); });
         
     }
 }
 
-pub struct Packet {
-    length: i32,
-    id: i32,
-    data: Vec<u8>,
-}
+pub struct Packet { length: i32, id: i32, data: Vec<u8>, }
 
 impl Packet {
     pub fn new(length: i32, id: i32, data: Vec<u8>) -> Self {
-        Packet {
-            length,
-            id,
-            data,
-        }
+        Packet { length, id, data, }
     }
-    pub fn get_info(&self) {
-        println!("Packet Length: {0}\nPacket ID: {1}", self.length, self.id);
-    }
+    pub fn get_info(&self) { println!("Packet Length: {0}\nPacket ID: {1}", self.length, self.id); }
 }
 
 
@@ -143,20 +119,10 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         println!("Reading from stream");
         let mut raw_data = Vec::new();
         match stream.try_read_buf( &mut buf) {
-            Ok(0) => {
-                println!("  Connection Closed");
-                break;
-            }
-            Ok(n) => {
-                raw_data.extend_from_slice(&buf[..n]);
-            }
-            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
-                continue;
-            }
-            Err(e) => {
-                println!("Failed to read from socket; err = {:?}", e);
-                return Err(e);
-            }
+            Ok(0) => { println!("  Connection Closed"); break; }
+            Ok(n) => { raw_data.extend_from_slice(&buf[..n]); }
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => { continue; }
+            Err(e) => { println!("Failed to read from socket; err = {:?}", e); return Err(e); }
         }
 
         println!("STATE: {:?}", state);
@@ -177,24 +143,15 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         Ok(new_state) => new_state,
                         Err(e) => { println!("Handshake Failed: {:?}", e); State::Handshake }
                     };
-
-                stream.writable().await?;
-                stream.flush().await?;
-                buf.clear();
             }
             
             State::Status => {
                 println!("Status");
 
                 match controllers::status::handle_status(&mut stream, raw_data.clone(), &packet).await {
-                    Ok(_) => {},
+                    Ok(_) => {println!("Status Success"); },
                     Err(e) => { println!("Status Failed: {:?}", e); }
                 }
-
-
-                stream.writable().await?;
-                stream.flush().await?;
-                buf.clear();
 
             }
 
@@ -228,12 +185,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                         buf.clear();
                     }
                     
-                    _ => {
-                        println!("Login Failed");
-                        buf.clear();
-
-                    }
-                }
+                    _ => { println!("Login Failed"); } }
             }
 
             _ => {
@@ -241,5 +193,13 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             }
         }
     }
+
+
+
+    stream.writable().await?;
+    stream.flush().await?;
+    buf.clear();
+
+
     Ok(())
 }
