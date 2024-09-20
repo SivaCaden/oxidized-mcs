@@ -9,7 +9,7 @@ use tokio::{io::AsyncWriteExt, net::TcpStream};
 use crate::util::packet_parser::*;
 use crate::util::packet_crafter::*;
 use crate::controllers::key_controller::KeyController;
-use crate::Packet;
+use crate::server::Packet;
 
 
 pub async fn login(packet: &Packet, key_controller: &KeyController, stream: &mut TcpStream) -> Result<()> {

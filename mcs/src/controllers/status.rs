@@ -10,7 +10,7 @@
 use std::io::{ ErrorKind, Result }; 
 use tokio::{io::AsyncWriteExt, net::TcpStream};
 use crate::util::packet_crafter::*;
-use crate::Packet;
+use crate::server::Packet;
 
 
 pub async fn handle_status(stream: &mut TcpStream, raw_data:Vec<u8>, packet: &Packet) -> Result<()> {

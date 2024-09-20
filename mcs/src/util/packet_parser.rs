@@ -9,7 +9,7 @@ use crate::util::datatypes::{
     Uuid,
 };
 
-use crate::Packet;
+use crate::server::Packet;
 
 pub fn make_packet(data: Vec<u8>) -> Packet {
     let data = data;

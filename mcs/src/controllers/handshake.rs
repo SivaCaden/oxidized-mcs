@@ -6,8 +6,8 @@
 */
 
 use std::io::{ Error, ErrorKind, Result };
-use crate::State;
-use crate::Packet;
+use crate::server::State;
+use crate::server::Packet;
 use crate::util::packet_parser::*;
 
 
