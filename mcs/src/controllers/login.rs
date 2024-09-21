@@ -24,7 +24,7 @@ pub async fn login(packet: &Packet, key_controller: &KeyController, stream: &mut
                         let player_uuid = uuid;
                         println!("    Name: {0}\n    UUID: {1}", player_name, player_uuid);
                         println!("    Sending Encryption Request");
-                        let response = craft_encryption_request(key_controller.get_public_key());
+                        let response = craft_encryption_request(key_controller.get_der_key());
 
                         stream.writable().await?;
                         stream.write_all(&response).await?;

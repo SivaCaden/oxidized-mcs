@@ -34,5 +34,8 @@ impl KeyController{
     pub fn get_public_key(&self) -> RsaPublicKey{
         self.public_key.clone()
     }
+    pub fn get_der_key(&self) -> Vec<u8>{
+        self.ready_pkey.clone()
+    }
 
 }

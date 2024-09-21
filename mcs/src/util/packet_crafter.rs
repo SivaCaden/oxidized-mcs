@@ -62,7 +62,7 @@ pub fn craft_status_response() -> Vec<u8> {
     gift_wrap_packet(response)
 }
 
-pub fn craft_encryption_request(public_key: RsaPublicKey) -> Vec<u8> {
+pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
 
 
     println!("    crafting encryption request");
@@ -79,11 +79,9 @@ pub fn craft_encryption_request(public_key: RsaPublicKey) -> Vec<u8> {
     // server id "appears to be empty"
     response = StringMC::encode("".to_string(), response);
     // public key length as a Varint
-    response = VarInt::encode(public_key.size() as i32, response);
+    response = VarInt::encode(public_key.len() as i32, response);
     // encode the public key bites as base64 and wrap in PEM
-    let base_64_key = general_purpose::STANDARD.encode(public_key.n().to_bytes_be());
-    let pem = format!("-----BEGIN PUBLIC KEY-----\n{}\n-----END PUBLIC KEY-----", base_64_key);
-    response.extend_from_slice(pem.as_bytes());
+    response.extend_from_slice(&public_key);
     // verify token length as a Varint
     response = VarInt::encode(verify_token.len() as i32, response);
     // verify token in bytes
