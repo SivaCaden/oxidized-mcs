@@ -60,7 +60,7 @@ impl Packet {
 
 async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , key_controller: KeyController) -> Result<()>{
 
-    let mut buf = Vec::new();
+    let mut buf: Vec<u8> = Vec::new();
     loop {
 
         println!("attempting to read from stream");
@@ -108,7 +108,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                 println!("Login");
 
                 match login(&packet, &key_controller, &mut stream).await {
-                    Ok(_) => {println!("Login Didn't Die"); },
+                    Ok(_) => {println!("Login Success"); },
                     Err(e) => { println!("Login Failed: {:?}", e); }
                 }
             }
