@@ -41,11 +41,17 @@ pub mod models;
 pub mod server;
 pub mod tests;
 
+const HOST: &str = "127.0.0.1";
+const PORT: &str = "25565";
+
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
+    let addr = format!("{}:{}", HOST, PORT);
+
     println!("running server");
-    server::run().await;
+    server::run(addr).await;
     println!("bs after server");
 
     Ok(())

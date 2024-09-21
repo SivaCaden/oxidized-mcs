@@ -14,7 +14,7 @@ const PORT: u16 = 25565;
 #[derive(Debug, Copy, Clone)]
 pub enum State { Handshake, Status, Login, _Play, }
 
-pub async fn run() {
+pub async fn run(addr: String) {
     // ok I know this is not the secure way of generating and storing
     // cryptographic keys but I just want this to work ok?
     // throw this in a seperate file later please caden? (ok)
@@ -22,9 +22,6 @@ pub async fn run() {
     let key_controller = KeyController::new();
     
 
-    let host = HOST;
-    let port: u16 = 25565;
-    let addr = format!("{}:{}", host, port).to_string();
         
     let state = State::Handshake;
 
