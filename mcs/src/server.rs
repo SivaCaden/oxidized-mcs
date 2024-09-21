@@ -108,7 +108,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                 println!("Login");
 
                 match login(&packet, &key_controller, &mut stream).await {
-                    Ok(_) => {println!("Login Success"); },
+                    Ok(_) => {println!("Login Didn't Die"); },
                     Err(e) => { println!("Login Failed: {:?}", e); }
                 }
             }

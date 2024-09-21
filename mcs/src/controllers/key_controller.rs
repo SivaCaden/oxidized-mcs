@@ -6,7 +6,11 @@ use std::sync::Arc;
 
 
 fn encode_public_key(public_key: RsaPublicKey) -> Vec<u8>{
-    public_key.to_public_key_der().as_ref().expect("Failed to encode public key").to_vec()
+    public_key
+        .to_public_key_der()
+        .as_ref()
+        .expect("Failed to encode public key")
+        .to_vec()
 }
 
 #[derive(Clone)]
