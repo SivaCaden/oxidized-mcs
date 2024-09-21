@@ -8,8 +8,7 @@ use std::io::{ ErrorKind, Result };
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
 
-const HOST: &str = "127.0.0.1";
-const PORT: u16 = 25565;
+const BACKUP_ADDR: &str = "127.0.0.1:25565";
 
 #[derive(Debug, Copy, Clone)]
 pub enum State { Handshake, Status, Login, _Play, }
@@ -20,9 +19,6 @@ pub async fn run(addr: String) {
     // throw this in a seperate file later please caden? (ok)
     
     let key_controller = KeyController::new();
-    
-
-        
     let state = State::Handshake;
 
     let server = match TcpListener::bind(addr.clone()).await {
@@ -30,8 +26,7 @@ pub async fn run(addr: String) {
         Err(e) => {
             println!("  Failed to bind to address: {}", e);
             println!("  binding to localhost instead");
-            let addr = format!("{}:{}", "127.0.0.1", PORT).to_string();
-            TcpListener::bind(addr).await.unwrap()
+            TcpListener::bind(BACKUP_ADDR).await.unwrap()
         }
     };
 
