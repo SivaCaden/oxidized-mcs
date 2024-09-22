@@ -38,7 +38,7 @@ pub async fn login(packet: &Packet, key_controller: &KeyController, stream: &mut
                         // if response is good
                         // send login success
                         
-                        parse_encryption_response(packet.data.clone());
+                        let (_encrypted_shared_secret, _encrypted_verify_token) =  parse_encryption_response(packet.data.clone());
 
                         return Ok(());
 
