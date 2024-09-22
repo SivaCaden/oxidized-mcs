@@ -61,15 +61,23 @@ impl Packet {
 async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , key_controller: KeyController) -> Result<()>{
 
     let mut buf: Vec<u8> = Vec::new();
+    let mut raw_data = Vec::new();
     loop {
 
         println!("attempting to read from stream");
         stream.readable().await?;
         println!("Reading from stream");
-        let mut raw_data = Vec::new();
         match stream.try_read_buf( &mut buf) {
             Ok(0) => { println!("  Connection Closed"); break; }
-            Ok(n) => { raw_data.extend_from_slice(&buf[..n]); }
+            Ok(n) if n >= 64 => {
+                println!("  Read {} bytes", n);
+                raw_data.extend_from_slice(&buf[..n]);
+                continue;
+            }
+            Ok(n) => {
+                println!("  Read {} bytes", n);
+                raw_data.extend_from_slice(&buf[..n]); 
+            }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => { continue; }
             Err(e) => { println!("Failed to read from socket; err = {:?}", e); return Err(e); }
         }
@@ -82,7 +90,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         let _meme = raw_data.clone();
         let packet = make_packet(raw_data.clone());
 
-        println!("Data Size: {}", size);
+        println!("Raw Data Size: {}", size);
         packet.get_info();
 
 
@@ -123,6 +131,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         stream.writable().await?;
         stream.flush().await?;
         buf.clear();
+        raw_data.clear();
     }
    Ok(()) 
 }
