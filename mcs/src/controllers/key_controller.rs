@@ -1,7 +1,7 @@
 
-use rsa::{RsaPublicKey, RsaPrivateKey};
+use rsa::{RsaPublicKey, RsaPrivateKey, Pkcs1v15Encrypt};
 use pkcs8::EncodePublicKey;
-use rand::thread_rng;
+use rand::{rngs::StdRng, thread_rng, SeedableRng};
 use std::sync::Arc;
 
 
@@ -22,7 +22,9 @@ pub struct KeyController{
 
 impl KeyController{
     pub fn new() -> Self{
-        let mut rng = thread_rng();
+        let seed: [u8; 32] = [0; 32];
+        
+        let mut rng = StdRng::from_seed(seed);
         let bits = 1024;
         let private_key = RsaPrivateKey::new(&mut rng, bits)
             .expect("   Failed to generate a key");
@@ -40,6 +42,13 @@ impl KeyController{
     }
     pub fn get_der_key(&self) -> Vec<u8>{
         self.ready_pkey.clone()
+    }
+    pub fn decrypt(&self, data: Vec<u8>) -> Vec<u8>{
+        let private_key = self._private_key.clone();
+        let decrypted = private_key
+            .decrypt(Pkcs1v15Encrypt,&data)
+            .expect("Failed to decrypt data");
+        decrypted
     }
 
 }

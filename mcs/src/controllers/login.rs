@@ -40,6 +40,11 @@ pub async fn login(packet: &Packet, key_controller: &KeyController, stream: &mut
                         
                         let (_encrypted_shared_secret, _encrypted_verify_token) =  parse_encryption_response(packet.data.clone());
 
+                        let deycrypted_veryify_token = key_controller.decrypt(_encrypted_shared_secret);
+                        
+                        //print out the verify token 
+                        println!("    verify token: {:x?}", deycrypted_veryify_token);
+
                         return Ok(());
 
                     }

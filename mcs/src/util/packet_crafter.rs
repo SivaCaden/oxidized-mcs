@@ -72,7 +72,9 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
     let mut verify_token: Vec<u8> = Vec::new();
     for _ in 0..4 {
         verify_token.push(rand::random::<u8>());
-    }
+    } 
+    //print out the verify token
+    println!("    verify token: {:x?}", verify_token);
 
     let mut response: Vec<u8> = Vec::new();
     response = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, response);

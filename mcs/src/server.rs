@@ -71,12 +71,15 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             Ok(0) => { println!("  Connection Closed"); break; }
             Ok(n) if n >= 64 => {
                 println!("  Read {} bytes", n);
+                //print the raw data
                 raw_data.extend_from_slice(&buf[..n]);
+                println!("Raw Data from the if statement: \n{:x?}", raw_data);
                 continue;
             }
             Ok(n) => {
                 println!("  Read {} bytes", n);
                 raw_data.extend_from_slice(&buf[..n]); 
+                println!("Raw Data from the else statement: \n{:x?}", raw_data);
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => { continue; }
             Err(e) => { println!("Failed to read from socket; err = {:?}", e); return Err(e); }
