@@ -72,8 +72,10 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             Ok(n) if n >= 64 => {
                 println!("  Read {} bytes", n);
                 //print the raw data
-                raw_data.extend_from_slice(&buf[..n]);
-                println!("Raw Data from the if statement: \n{:x?}", raw_data);
+                let start = buf.len() - n;
+                let new_data = &buf[start..];
+                println!("New Data: \n{:x?}", new_data);
+                raw_data.extend_from_slice(new_data);
                 continue;
             }
             Ok(n) => {
