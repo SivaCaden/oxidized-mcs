@@ -78,15 +78,10 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
 
     let mut response: Vec<u8> = Vec::new();
     response = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, response);
-    // server id "appears to be empty"
     response = StringMC::encode("".to_string(), response);
-    // public key length as a Varint
     response = VarInt::encode(public_key.len() as i32, response);
-    // encode the public key bites as base64 and wrap in PEM
     response.extend_from_slice(&public_key);
-    // verify token length as a Varint
     response = VarInt::encode(verify_token.len() as i32, response);
-    // verify token in bytes
     response.extend_from_slice(&verify_token);
     // should authenticate through mojang servers?
     response = Bool::encode(false, response);

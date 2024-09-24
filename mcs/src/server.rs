@@ -71,17 +71,14 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             Ok(0) => { println!("  Connection Closed"); break; }
             Ok(n) if n >= 64 => {
                 println!("  Read {} bytes", n);
-                //print the raw data
                 let start = buf.len() - n;
                 let new_data = &buf[start..];
-                println!("New Data: \n{:x?}", new_data);
                 raw_data.extend_from_slice(new_data);
                 continue;
             }
             Ok(n) => {
                 println!("  Read {} bytes", n);
                 raw_data.extend_from_slice(&buf[..n]); 
-                println!("Raw Data from the else statement: \n{:x?}", raw_data);
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => { continue; }
             Err(e) => { println!("Failed to read from socket; err = {:?}", e); return Err(e); }
@@ -121,7 +118,7 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
                 println!("Login");
 
                 match login(&packet, &key_controller, &mut stream).await {
-                    Ok(_) => {println!("Login Success"); },
+                    Ok(_) => {println!("Login didn't crash"); },
                     Err(e) => { println!("Login Failed: {:?}", e); }
                 }
             }
