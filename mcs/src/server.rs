@@ -4,6 +4,7 @@
 
 use crate::{ controllers::key_controller::KeyController, util::packet_parser::make_packet};
 use crate::controllers::{handshake::handel_handshake, status::handle_status, login::login};
+use crate::models::player::Player;
 use std::io::{ ErrorKind, Result };
 
 use tokio::{io::AsyncWriteExt, net::{TcpListener, TcpStream}};
@@ -58,7 +59,9 @@ impl Packet {
 }
 
 
-async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , key_controller: KeyController) -> Result<()>{
+async fn handle_connection( addr: String, mut stream: TcpStream, mut state: State , mut key_controller: KeyController) -> Result<()>{
+
+    let mut client = Player::new("".to_string(), "".to_string());
 
     let mut buf: Vec<u8> = Vec::new();
     let mut raw_data = Vec::new();
@@ -117,9 +120,15 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
             State::Login => {
                 println!("Login");
 
-                match login(&packet, &key_controller, &mut stream).await {
-                    Ok(_) => {println!("Login didn't crash"); },
-                    Err(e) => { println!("Login Failed: {:?}", e); }
+                client = match login(client, &packet, &mut key_controller, &mut stream).await {
+                    Ok(client) => {
+                        println!("Login didn't crash");
+                        client
+                    },
+                    Err(e) => { 
+                        println!("Login Failed: {:?}", e);
+                        Player::new("".to_string(), "".to_string())
+                    }
                 }
             }
             State::_Play => {

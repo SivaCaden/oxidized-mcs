@@ -5,3 +5,20 @@
  * Authored by: Three rats in a trench coat
  *
 */
+
+#[derive(Debug, Clone)]
+pub struct Player {
+    pub uuid: String,
+    pub name: String,
+    
+}
+
+impl Player {
+    pub fn new(uuid: String, name: String) -> Player {
+        Player {
+            uuid,
+            name,
+        }
+    }
+
+}

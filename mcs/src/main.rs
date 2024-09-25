@@ -48,10 +48,8 @@ const PORT: &str = "25565";
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
-    let addr = format!("{}:{}", HOST, PORT);
-
     println!("running server");
-    server::run(addr).await;
+    server::run(format!("{}:{}", HOST, PORT)).await;
     println!("bs after server");
 
     Ok(())

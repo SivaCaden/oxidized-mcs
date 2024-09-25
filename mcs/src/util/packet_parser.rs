@@ -65,11 +65,7 @@ pub fn parse_login_start(data: Vec<u8>) -> (String, String) {
 pub fn parse_encryption_response(data: Vec<u8>) -> (Vec<u8>, Vec<u8>){
     println!("    Parsing encryption response");
     let (shared_secret_length, mut shared_secret) = VarInt::decode(data);
-    println!("    shared secret length {}", shared_secret_length);
-
     let data = shared_secret.split_off((shared_secret_length)  as usize);
-    println!("    shared secret mesured length {}", shared_secret.len());
-
     let (verify_token_length, encoded_verify_token) = VarInt::decode(data);
 
     println!("    shared secret length {}", shared_secret_length);
@@ -79,3 +75,4 @@ pub fn parse_encryption_response(data: Vec<u8>) -> (Vec<u8>, Vec<u8>){
     println!("    acutal verify token length {}", encoded_verify_token.len());
     return (shared_secret.to_vec(), encoded_verify_token.to_vec());
 }
+

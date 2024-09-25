@@ -3,8 +3,6 @@
 
 #![allow(dead_code)]
 
-use base64::{engine::general_purpose, Engine as _};
-use rsa::{traits::PublicKeyParts, RsaPublicKey};
 
 use crate::util::datatypes::*;
 
@@ -75,6 +73,7 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
     } 
     //print out the verify token
     println!("    verify token: {:x?}", verify_token);
+    println!("    verify token length: {}", verify_token.len());
 
     let mut response: Vec<u8> = Vec::new();
     response = VarInt::encode(LOGIN_ENCRYPTION_REQUEST_PACKET_ID as i32, response);
@@ -82,6 +81,7 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
     response = VarInt::encode(public_key.len() as i32, response);
     response.extend_from_slice(&public_key);
     response = VarInt::encode(verify_token.len() as i32, response);
+    // verify token in bytes
     response.extend_from_slice(&verify_token);
     // should authenticate through mojang servers?
     response = Bool::encode(false, response);
@@ -89,7 +89,13 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
 
     gift_wrap_packet(response)
 
+}
 
-
-
+pub fn craft_login_success(uuid: String, name: String) -> Vec<u8> {
+    println!("    crafting login success");
+    let mut response: Vec<u8> = Vec::new();
+    response = VarInt::encode(LOGIN_SUCCESS_PACKET_ID as i32, response);
+    response = StringMC::encode(uuid, response);
+    response = StringMC::encode(name, response);
+    gift_wrap_packet(response)
 }
