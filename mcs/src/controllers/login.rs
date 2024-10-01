@@ -17,6 +17,8 @@ pub async fn login(mut client:Player, packet: &Packet, key_controller: &mut KeyC
 
     println!("login");
     println!("Packet data: {:x?}", packet.data);
+    println!("client name: {}", client.name);
+    println!("client uuid: {}", client.uuid);
     match packet.id {
         0 => {
             println!("Login Start");
@@ -35,42 +37,30 @@ pub async fn login(mut client:Player, packet: &Packet, key_controller: &mut KeyC
 
         1 => {
             println!("Encryption Response");
-
-
             let ( mut encrypted_shared_secret, _encrypted_verify_token) =  parse_encryption_response(packet.data.clone());
 
             let decrypted_shared_secret = key_controller.decrypt(&mut encrypted_shared_secret);
-            println!("    shared secret: {:x?}", decrypted_shared_secret);
-            println!("  shared secret length: {}", decrypted_shared_secret.len());
             if decrypted_shared_secret.len() == 16 {
-                println!("    Encryption Successful");
-                key_controller.set_aes(decrypted_shared_secret.clone());
+                println!("    Encryption key recieved from {} {}", client.name, client.uuid);
+                client.set_aes(decrypted_shared_secret.clone());
                 // send a login success packet to client
                 
-                let raw_responce = craft_login_success(client.uuid.clone(), client.name.clone());
-
-                let cooked_response = key_controller.encrypt_aes(&mut raw_responce.clone());
-
-
-
-                
+                let mut raw_responce = craft_login_success(client.uuid.clone(), client.name.clone());
+                if let Some(ref mut aes_keeper) = client.aes_keeper {
+                    aes_keeper.encrypt(&mut raw_responce);
+                };
 
                 stream.writable().await?;
-                stream.write_all(&cooked_response).await?;
+                stream.write_all(&raw_responce).await?;
             } else {
                 println!("    Encryption Failed");
                 // send a login disconnect packet to client for encyrption failure
                 // send_disconnect_packet(stream, "Encryption Failed".to_string());
             }
-
             return Ok(client);
-
         }
-
         _ => { println!("Login Failed");
             return Err(Error::new(ErrorKind::Other, "Login Failed"));
-
-
         } 
     }
 

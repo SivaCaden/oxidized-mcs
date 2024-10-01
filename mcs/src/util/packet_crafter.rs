@@ -5,6 +5,7 @@
 
 
 use crate::util::datatypes::*;
+// use serde::{Serialize};
 
 // mode 1 status packet ids
 const STATUS_RESPONCE_PACKET_ID: u8 = 0x00;
@@ -17,7 +18,10 @@ const LOGIN_SET_COMPRESSION_PACKET_ID: u8 = 0x03;
 const LOGIN_PLUGIN_REQUEST_PACKET_ID: u8 = 0x04;
 const LOGIN_COOKIE_REQUEST_PACKET_ID: u8 = 0x05;
 
-
+// constatns for server responce
+const MAX_PLAYERS: i32 = 10;
+const VERSION: &str = "1.21.1";
+const PROTOCOL: i32 = 767;
 
 fn gift_wrap_packet(packet: Vec<u8>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::new();
@@ -26,8 +30,36 @@ fn gift_wrap_packet(packet: Vec<u8>) -> Vec<u8> {
     out
 }
 
+struct StatusResponse {
+    version: String,
+    protocol: i32,
+    players: i32,
+    max_players: i32,
+    description: String,
+    favicon: String,
+    enforces_secure_chat: bool,
+    previews_chat: bool,
+}
 
 pub fn craft_status_response() -> Vec<u8> {
+    let online_players = 0;
+    let description = "C O R N E D B E E F H A S H W R A P";
+    let favicon = "data:image/png;base64,<data>";
+    let has_secure_chat = true;
+    let has_previews_chat = true;
+
+    let _raw = StatusResponse {
+        version: VERSION.to_string(),
+        protocol: PROTOCOL,
+        players: online_players,
+        max_players: MAX_PLAYERS,
+        description: description.to_string(),
+        favicon: favicon.to_string(),
+        enforces_secure_chat: has_secure_chat,
+        previews_chat: has_previews_chat,
+    };
+
+
     let json_response = r#"
     {
         "version": {

@@ -33,28 +33,21 @@ pub async fn run(addr: String) {
 
     loop {
         let clone_key_controller = key_controller.clone();
-
-
         println!("Waiting for connection...");
 
         let (stream, addr) = server.accept().await.unwrap();
 
         println!("\n=====================");
         println!("client connected");
-        
         tokio::spawn(async move { let _ = handle_connection( addr.to_string(), stream, state, clone_key_controller).await.unwrap(); });
-        
     }
 }
 
 pub struct Packet { pub length: i32, pub id: i32, pub data: Vec<u8>, }
 
 impl Packet {
-    pub fn new(length: i32, id: i32, data: Vec<u8>) -> Self {
-        Packet { length, id, data, }
-    }
+    pub fn new(length: i32, id: i32, data: Vec<u8>) -> Self { Packet { length, id, data, } }
     pub fn get_info(&self) { println!("Packet Length: {0}\nPacket ID: {1}", self.length, self.id); }
-
     pub fn get_data(&self) -> Vec<u8> { self.data.clone() }
 }
 
@@ -66,21 +59,16 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
     let mut buf: Vec<u8> = Vec::new();
     let mut raw_data = Vec::new();
     loop {
-
-        println!("attempting to read from stream");
         stream.readable().await?;
-        println!("Reading from stream");
         match stream.try_read_buf( &mut buf) {
             Ok(0) => { println!("  Connection Closed"); break; }
             Ok(n) if n >= 64 => {
-                println!("  Read {} bytes", n);
                 let start = buf.len() - n;
                 let new_data = &buf[start..];
                 raw_data.extend_from_slice(new_data);
                 continue;
             }
             Ok(n) => {
-                println!("  Read {} bytes", n);
                 raw_data.extend_from_slice(&buf[..n]); 
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => { continue; }
@@ -88,7 +76,6 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
         }
 
         println!("STATE: {:?}", state);
-
         println!("======================\n");
 
         let size = raw_data.len();
@@ -97,7 +84,6 @@ async fn handle_connection( addr: String, mut stream: TcpStream, mut state: Stat
 
         println!("Raw Data Size: {}", size);
         packet.get_info();
-
 
         match state {
             State::Handshake => {
