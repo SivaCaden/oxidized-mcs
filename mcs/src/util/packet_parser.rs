@@ -67,12 +67,6 @@ pub fn parse_encryption_response(data: Vec<u8>) -> (Vec<u8>, Vec<u8>){
     let (shared_secret_length, mut shared_secret) = VarInt::decode(data);
     let data = shared_secret.split_off((shared_secret_length)  as usize);
     let (verify_token_length, encoded_verify_token) = VarInt::decode(data);
-
-    println!("    shared secret length {}", shared_secret_length);
-    println!("    shared secret {:x?}", shared_secret);
-    println!("    verify token length {}", verify_token_length);
-    println!("    verify token {:x?}", encoded_verify_token);
-    println!("    acutal verify token length {}", encoded_verify_token.len());
     return (shared_secret.to_vec(), encoded_verify_token.to_vec());
 }
 

@@ -92,7 +92,7 @@ pub fn craft_status_response() -> Vec<u8> {
     gift_wrap_packet(response)
 }
 
-pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
+pub fn craft_encryption_request(public_key: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
 
 
     println!("    crafting encryption request");
@@ -119,7 +119,7 @@ pub fn craft_encryption_request(public_key: Vec<u8>) -> Vec<u8> {
     response = Bool::encode(false, response);
 
 
-    gift_wrap_packet(response)
+    return (gift_wrap_packet(response), verify_token);
 
 }
 

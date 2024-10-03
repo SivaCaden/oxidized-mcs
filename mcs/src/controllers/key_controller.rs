@@ -1,7 +1,8 @@
 
+use der::Encode;
+use spki::EncodePublicKey;
 use std::sync::Mutex;
-use rsa::{RsaPublicKey, RsaPrivateKey, Pkcs1v15Encrypt};
-use pkcs8::EncodePublicKey;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey, RsaPublicKey};
 use rand::thread_rng;
 use std::sync::Arc;
 use aes::Aes128;
@@ -12,12 +13,20 @@ use cfb8::{
 type Aes128Cfb8 = Cfb8<Aes128>;
 type CKey = [u8; 16];
 
-fn encode_public_key(public_key: RsaPublicKey) -> Vec<u8>{
-    public_key
-        .to_public_key_der()
-        .as_ref()
-        .expect("Failed to encode public key")
-        .to_vec()
+
+fn encode_public_key(public_key: RsaPublicKey) -> Vec<u8> {
+    match public_key.to_public_key_der() {
+        Ok(data) => {
+            let out = data.to_der().expect("Failed to encode public key");
+            println!("Encoded public key {:#?}", out);
+            out
+         
+        },
+        Err(e) => {
+            println!("Failed to encode public key: {:?}", e);
+            return vec![];
+        }
+    }
 }
 
 pub struct AesKeeper{
@@ -101,11 +110,17 @@ impl KeyController{
     pub fn get_der_key(&self) -> Vec<u8>{ self.ready_pkey.clone() }
 
     pub fn decrypt(&mut self, data: &mut Vec<u8>) -> Vec<u8>{
+        self.decrypt_pgp(data.to_vec())
+    }
+    pub fn encrypt(&mut self, data: &mut Vec<u8>) -> Vec<u8>{
+        match self.public_key.encrypt(&mut thread_rng(), Pkcs1v15Encrypt, &data){
+            Ok(data) => data.to_vec(),
+            Err(e) => {
+                println!("Failed to encrypt data: {:?}", e);
+                vec![]
+            }
+        }
 
-        if !self.use_aes{
-            return self.decrypt_pgp(data.to_vec());
-        } 
-        return self.decrypt_aes(data);
     }
 
     pub fn decrypt_pgp(&self, data: Vec<u8>) -> Vec<u8>{
@@ -119,13 +134,5 @@ impl KeyController{
             }
         };
         decrypted
-    }
-
-    pub fn encrypt_aes(&mut self, data: &mut Vec<u8>) -> Vec<u8> {
-       data.to_vec()
-    }
-
-    fn decrypt_aes(&mut self, data: &mut Vec<u8>) -> Vec<u8>{
-        data.to_vec()
     }
 }
